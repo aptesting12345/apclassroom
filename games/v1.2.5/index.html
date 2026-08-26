@@ -1,0 +1,140 @@
+<!DOCTYPE html>
+<html lang="en-us">
+  <head>
+    <script>
+      //custom ad implementation (no ads)
+      window.showNextAd = () => {}
+      //make fullscreen
+      setInterval(() => {
+        let canvas = document.getElementById("unity-canvas")
+        if (!canvas) return
+        canvas.style.width = "100%"
+        canvas.style.height = "100%"
+      }, 100)
+    </script>
+    <meta charset="utf-8">
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+    <title>Slope</title>
+    
+    <link rel="stylesheet" href="TemplateData/style.css">
+    <style>
+      .back-link {
+        position: fixed;
+        top: 14px;
+        left: 14px;
+        z-index: 20;
+        width: 42px;
+        height: 42px;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: #fff;
+        background: rgba(0, 0, 0, 0.55);
+        border: 1px solid rgba(255, 255, 255, 0.22);
+        text-decoration: none;
+        backdrop-filter: blur(8px);
+        -webkit-backdrop-filter: blur(8px);
+      }
+
+      .back-link:hover {
+        background: rgba(0, 0, 0, 0.75);
+      }
+    </style>
+  <script>
+  (() => {
+    var o;
+    window.self !== window.top && window.addEventListener("keydown", (function (w) {
+      o[w.code] && w.preventDefault()
+    }
+    ), !(o = {
+      Space: !0,
+      ArrowUp: !0,
+      ArrowDown: !0,
+      ArrowLeft: !0,
+      ArrowRight: !0
+    }))
+  }
+  )();
+  </script></head>
+  <body>
+    <a class="back-link" href="../../index.html" aria-label="Back to games" title="Back to games">
+      <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.25" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m15 18-6-6 6-6"/><path d="M21 12H9"/></svg>
+    </a>
+    <div id="unity-container" class="unity-desktop">
+      <canvas id="unity-canvas" width=960 height=600></canvas>
+      <div id="unity-loading-bar">
+        <div id="unity-logo"></div>
+        <div id="unity-progress-bar-empty">
+          <div id="unity-progress-bar-full"></div>
+        </div>
+      </div>
+      <div id="unity-mobile-warning">
+      <div id="unity-footer">
+        <div id="unity-webgl-logo" style="display:none"></div>
+        <div id="unity-fullscreen-button" style="display:none"></div>
+        <div id="unity-build-title" style="display:none">Slope</div>
+      </div>
+    </div>
+    <script>
+      var buildUrl = "Build";
+      var loaderUrl = buildUrl + "/SlopeBuild.loader.js";
+      var config = {
+        dataUrl: buildUrl + "/SlopeBuild.data",
+        frameworkUrl: buildUrl + "/SlopeBuild.framework.js",
+        codeUrl: buildUrl + "/SlopeBuild.wasm",
+        streamingAssetsUrl: "StreamingAssets",
+        companyName: "Y8",
+        productName: "Slope",
+        productVersion: "1.2",
+      };
+
+      var container = document.querySelector("#unity-container");
+      var canvas = document.querySelector("#unity-canvas");
+      var loadingBar = document.querySelector("#unity-loading-bar");
+      var progressBarFull = document.querySelector("#unity-progress-bar-full");
+      var fullscreenButton = document.querySelector("#unity-fullscreen-button");
+      var mobileWarning = document.querySelector("#unity-mobile-warning");
+
+      // By default Unity keeps WebGL canvas render target size matched with
+      // the DOM size of the canvas element (scaled by window.devicePixelRatio)
+      // Set this to false if you want to decouple this synchronization from
+      // happening inside the engine, and you would instead like to size up
+      // the canvas DOM size and WebGL render target sizes yourself.
+      // config.matchWebGLToCanvasSize = false;
+
+      if (/iPhone|iPad|iPod|Android/i.test(navigator.userAgent)) {
+        container.className = "unity-mobile";
+        // Avoid draining fillrate performance on mobile devices,
+        // and default/override low DPI mode on mobile browsers.
+        config.devicePixelRatio = 1;
+        mobileWarning.style.display = "block";
+        setTimeout(() => {
+          mobileWarning.style.display = "none";
+        }, 5000);
+      } else {
+        canvas.style.width = "960px";
+        canvas.style.height = "600px";
+      }
+      loadingBar.style.display = "block";
+	  var myGameInstance = null;
+      var script = document.createElement("script");
+      script.src = loaderUrl;
+      script.onload = () => {
+        createUnityInstance(canvas, config, (progress) => {
+          progressBarFull.style.width = 100 * progress + "%";
+        }).then((unityInstance) => {
+		  myGameInstance = unityInstance;
+          loadingBar.style.display = "none";
+          fullscreenButton.onclick = () => {
+            unityInstance.SetFullscreen(1);
+          };
+        }).catch((message) => {
+          alert(message);
+        });
+      };
+      document.body.appendChild(script);
+    </script>
+    <script src="../JavaScript/Touchscreen.js"></script>
+  </body>
+</html>
