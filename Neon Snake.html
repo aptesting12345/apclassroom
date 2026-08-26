@@ -1,0 +1,1272 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+<meta name="theme-color" content="#0a0a14" />
+<title>Neon Snake</title>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=JetBrains+Mono:wght@500;700&display=swap" rel="stylesheet" />
+<style>
+  :root {
+    --font-display: 'Space Grotesk', system-ui, sans-serif;
+    --font-mono: 'JetBrains Mono', ui-monospace, monospace;
+    --color-bg: #0a0a14;
+    --color-surface: rgba(20, 20, 40, 0.55);
+    --color-border: rgba(120, 130, 200, 0.22);
+    --color-text: #eef2ff;
+    --color-text-muted: #8a93b8;
+    --snake-head: #5effa0;
+    --snake-body: #2fe27a;
+    --snake-tail: #18b9c4;
+    --food: #ff5e8a;
+    --food-glow: #ff8fb0;
+    --accent: #7c5cff;
+    --grid-line: rgba(120, 140, 220, 0.06);
+    --panel-radius: 18px;
+    --shadow-glow: 0 0 40px rgba(94, 255, 160, 0.18);
+    --transition-ui: 200ms cubic-bezier(0.16, 1, 0.3, 1);
+  }
+
+  *, *::before, *::after {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+  }
+
+  html {
+    -webkit-text-size-adjust: none;
+    text-size-adjust: none;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    text-rendering: optimizeLegibility;
+  }
+
+  body {
+    min-height: 100dvh;
+    font-family: var(--font-display);
+    color: var(--color-text);
+    background:
+      radial-gradient(1200px 700px at 15% -10%, rgba(124, 92, 255, 0.18), transparent 60%),
+      radial-gradient(1000px 600px at 110% 10%, rgba(24, 185, 196, 0.14), transparent 55%),
+      radial-gradient(900px 600px at 50% 120%, rgba(94, 255, 160, 0.10), transparent 60%),
+      var(--color-bg);
+    background-attachment: fixed;
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 14px;
+    padding: 16px;
+    user-select: none;
+    -webkit-user-select: none;
+    -webkit-tap-highlight-color: transparent;
+    touch-action: none;
+  }
+
+  .topbar {
+    width: 100%;
+    max-width: 560px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+  }
+
+  .brand {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+
+  .brand-logo {
+    width: 30px;
+    height: 30px;
+    flex: none;
+    filter: drop-shadow(0 0 8px rgba(94, 255, 160, 0.55));
+  }
+
+  .brand-name {
+    font-size: 19px;
+    font-weight: 700;
+    letter-spacing: 0.3px;
+    line-height: 1;
+  }
+
+  .brand-sub {
+    font-family: var(--font-mono);
+    font-size: 10px;
+    color: var(--color-text-muted);
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    margin-top: 3px;
+  }
+
+  .scores {
+    display: flex;
+    gap: 10px;
+    align-items: center;
+  }
+
+  .icon-btn {
+    width: 38px;
+    height: 38px;
+    flex: none;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: var(--color-surface);
+    border: 1px solid var(--color-border);
+    border-radius: 10px;
+    color: var(--color-text-muted);
+    cursor: pointer;
+    transition: color var(--transition-ui), background var(--transition-ui), transform var(--transition-ui);
+  }
+  .icon-btn:hover { color: var(--color-text); background: rgba(94, 255, 160, 0.12); }
+  .icon-btn:active { transform: scale(0.92); }
+
+  .score-pill {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-end;
+    padding: 7px 14px;
+    background: var(--color-surface);
+    border: 1px solid var(--color-border);
+    border-radius: 12px;
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
+    min-width: 76px;
+  }
+
+  .score-label {
+    font-family: var(--font-mono);
+    font-size: 9px;
+    letter-spacing: 1.5px;
+    text-transform: uppercase;
+    color: var(--color-text-muted);
+  }
+
+  .score-value {
+    font-family: var(--font-mono);
+    font-size: 18px;
+    font-weight: 700;
+    line-height: 1.2;
+    font-variant-numeric: tabular-nums lining-nums;
+  }
+
+  .score-pill.best .score-value { color: var(--snake-head); }
+
+  .stage-wrap {
+    position: relative;
+    width: 100%;
+    max-width: 560px;
+    aspect-ratio: 1 / 1;
+    border-radius: var(--panel-radius);
+    overflow: hidden;
+    border: 1px solid var(--color-border);
+    box-shadow:
+      0 20px 60px rgba(0, 0, 0, 0.5),
+      inset 0 0 0 1px rgba(255, 255, 255, 0.03);
+    background: #06060f;
+  }
+
+  canvas {
+    display: block;
+    width: 100%;
+    height: 100%;
+    image-rendering: auto;
+  }
+
+  .overlay {
+    position: absolute;
+    inset: 0;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 18px;
+    padding: 24px;
+    text-align: center;
+    background:
+      radial-gradient(circle at 50% 40%, rgba(124, 92, 255, 0.22), transparent 70%),
+      rgba(6, 6, 15, 0.78);
+    backdrop-filter: blur(8px);
+    -webkit-backdrop-filter: blur(8px);
+    z-index: 5;
+    opacity: 0;
+    visibility: hidden;
+    transition: opacity var(--transition-ui), visibility var(--transition-ui);
+  }
+
+  .overlay.active {
+    opacity: 1;
+    visibility: visible;
+  }
+
+  .overlay-title {
+    font-size: clamp(2rem, 7vw, 3.2rem);
+    font-weight: 700;
+    letter-spacing: -0.5px;
+    line-height: 1;
+    background: linear-gradient(120deg, var(--snake-head), var(--snake-tail) 60%, var(--accent));
+    -webkit-background-clip: text;
+    background-clip: text;
+    color: transparent;
+    filter: drop-shadow(0 0 24px rgba(94, 255, 160, 0.25));
+  }
+
+  .overlay-sub {
+    color: var(--color-text-muted);
+    font-size: 14px;
+    line-height: 1.5;
+    max-width: 30ch;
+  }
+
+  .overlay-stats {
+    display: flex;
+    gap: 28px;
+    margin: 4px 0;
+  }
+
+  .overlay-stat {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 4px;
+  }
+
+  .overlay-stat-label {
+    font-family: var(--font-mono);
+    font-size: 10px;
+    letter-spacing: 1.5px;
+    text-transform: uppercase;
+    color: var(--color-text-muted);
+  }
+
+  .overlay-stat-value {
+    font-family: var(--font-mono);
+    font-size: 26px;
+    font-weight: 700;
+    font-variant-numeric: tabular-nums lining-nums;
+  }
+
+  .btn {
+    font-family: var(--font-display);
+    font-size: 15px;
+    font-weight: 600;
+    letter-spacing: 0.3px;
+    color: #04140c;
+    background: linear-gradient(120deg, var(--snake-head), #2fe27a 55%, var(--snake-tail));
+    border: none;
+    border-radius: 12px;
+    padding: 13px 30px;
+    cursor: pointer;
+    box-shadow:
+      0 8px 24px rgba(47, 226, 122, 0.35),
+      inset 0 1px 0 rgba(255, 255, 255, 0.35);
+    transition: transform var(--transition-ui), box-shadow var(--transition-ui), filter var(--transition-ui);
+  }
+
+  .btn:hover {
+    transform: translateY(-2px);
+    box-shadow:
+      0 12px 30px rgba(47, 226, 122, 0.45),
+      inset 0 1px 0 rgba(255, 255, 255, 0.4);
+    filter: brightness(1.06);
+  }
+
+  .btn:active { transform: translateY(0); }
+
+  .hint {
+    width: 100%;
+    max-width: 560px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 18px;
+    flex-wrap: wrap;
+    color: var(--color-text-muted);
+    font-size: 12px;
+  }
+
+  .hint kbd {
+    font-family: var(--font-mono);
+    font-size: 11px;
+    background: var(--color-surface);
+    border: 1px solid var(--color-border);
+    border-radius: 6px;
+    padding: 3px 8px;
+    color: var(--color-text);
+    margin: 0 1px;
+  }
+
+  .hint-sep {
+    width: 1px;
+    height: 14px;
+    background: var(--color-border);
+  }
+
+  .controls-row {
+    width: 100%;
+    max-width: 560px;
+    display: none;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 8px;
+    margin-top: 4px;
+  }
+
+  .dpad {
+    display: contents;
+  }
+
+  .dpad-btn {
+    height: 52px;
+    border-radius: 12px;
+    background: var(--color-surface);
+    border: 1px solid var(--color-border);
+    color: var(--color-text);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 22px;
+    cursor: pointer;
+    transition: background var(--transition-ui), transform var(--transition-ui);
+  }
+
+  .dpad-btn:active {
+    background: rgba(94, 255, 160, 0.18);
+    transform: scale(0.94);
+  }
+
+  .dpad-empty { visibility: hidden; }
+
+  @media (pointer: coarse), (max-width: 640px) {
+    .controls-row { display: grid; }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    *, *::before, *::after {
+      animation-duration: 0.01ms !important;
+      transition-duration: 0.01ms !important;
+    }
+  }
+</style>
+</head>
+<body>
+  <header class="topbar">
+    <div class="brand">
+      <svg class="brand-logo" viewBox="0 0 32 32" fill="none" aria-hidden="true">
+        <defs>
+          <linearGradient id="lg" x1="0" y1="0" x2="1" y2="1">
+            <stop offset="0" stop-color="#5effa0"/>
+            <stop offset="0.6" stop-color="#2fe27a"/>
+            <stop offset="1" stop-color="#18b9c4"/>
+          </linearGradient>
+        </defs>
+        <path d="M5 22 Q9 14 16 18 Q23 22 27 14" stroke="url(#lg)" stroke-width="4.5" stroke-linecap="round" fill="none"/>
+        <circle cx="27" cy="14" r="3.2" fill="url(#lg)"/>
+        <circle cx="5" cy="22" r="3.2" fill="url(#lg)"/>
+      </svg>
+      <div>
+        <div class="brand-name">Neon Snake</div>
+        <div class="brand-sub">arcade</div>
+      </div>
+    </div>
+    <div class="scores">
+      <button class="icon-btn" id="muteBtn" type="button" aria-label="Mute" title="Mute">
+        <svg id="iconSound" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M11 5 6 9H2v6h4l5 4V5z"/><path d="M19 5a10 10 0 0 1 0 14M16 8a5 5 0 0 1 0 8"/></svg>
+        <svg id="iconMuted" style="display:none" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M11 5 6 9H2v6h4l5 4V5z"/><path d="m22 9-6 6M16 9l6 6"/></svg>
+      </button>
+      <div class="score-pill">
+        <span class="score-label">Score</span>
+        <span class="score-value" id="score">0</span>
+      </div>
+      <div class="score-pill best">
+        <span class="score-label">Best</span>
+        <span class="score-value" id="best">0</span>
+      </div>
+    </div>
+  </header>
+
+  <div class="stage-wrap" id="stage">
+    <canvas id="game" width="600" height="600" aria-label="Snake game"></canvas>
+
+    <!-- Start overlay -->
+    <div class="overlay active" id="overlayStart">
+      <div class="overlay-title">Neon Snake</div>
+      <p class="overlay-sub">Guide the glowing serpent. Collect orbs, grow longer, and don't bite your own tail.</p>
+      <button class="btn" id="startBtn" type="button">Play</button>
+    </div>
+
+    <!-- Pause overlay -->
+    <div class="overlay" id="overlayPause">
+      <div class="overlay-title">Paused</div>
+      <button class="btn" id="resumeBtn" type="button">Resume</button>
+    </div>
+
+    <!-- Game over overlay -->
+    <div class="overlay" id="overlayOver">
+      <div class="overlay-title">Game Over</div>
+      <div class="overlay-stats">
+        <div class="overlay-stat">
+          <span class="overlay-stat-label">Score</span>
+          <span class="overlay-stat-value" id="finalScore">0</span>
+        </div>
+        <div class="overlay-stat">
+          <span class="overlay-stat-label">Best</span>
+          <span class="overlay-stat-value" id="finalBest">0</span>
+        </div>
+        <div class="overlay-stat">
+          <span class="overlay-stat-label">Length</span>
+          <span class="overlay-stat-value" id="finalLen">3</span>
+        </div>
+      </div>
+      <button class="btn" id="retryBtn" type="button">Play Again</button>
+    </div>
+  </div>
+
+  <div class="hint" id="hint">
+    <span><kbd>W</kbd><kbd>A</kbd><kbd>S</kbd><kbd>D</kbd> / arrows move</span>
+    <span class="hint-sep"></span>
+    <span><kbd>Space</kbd> pause</span>
+    <span class="hint-sep"></span>
+    <span>Swipe on mobile</span>
+  </div>
+
+  <div class="controls-row" id="dpad" role="group" aria-label="Direction controls">
+    <div class="dpad-btn dpad-empty"></div>
+    <button class="dpad-btn" data-dir="up" type="button" aria-label="Up">▲</button>
+    <div class="dpad-btn dpad-empty"></div>
+    <button class="dpad-btn" data-dir="left" type="button" aria-label="Left">◀</button>
+    <button class="dpad-btn" data-dir="down" type="button" aria-label="Down">▼</button>
+    <button class="dpad-btn" data-dir="right" type="button" aria-label="Right">▶</button>
+  </div>
+
+<script>
+(() => {
+  'use strict';
+
+  const canvas = document.getElementById('game');
+  const ctx = canvas.getContext('2d');
+  const GRID = 22;                  // cells per side
+  let cell = 0;                     // CSS px per grid cell (recomputed on resize)
+
+  const STATE = { START: 'start', PLAYING: 'playing', PAUSED: 'paused', OVER: 'over' };
+
+  // ---- Game state ----
+  let state = STATE.START;
+  let snake, dir, nextDir, food, score, best, particles, grow, tickInterval, acc, lastTime, interpT;
+  let shake = 0, foodPulse = 0;
+  best = 0;
+
+  // ---- DOM refs ----
+  const elScore = document.getElementById('score');
+  const elBest = document.getElementById('best');
+  const elFinalScore = document.getElementById('finalScore');
+  const elFinalBest = document.getElementById('finalBest');
+  const elFinalLen = document.getElementById('finalLen');
+  const overlayStart = document.getElementById('overlayStart');
+  const overlayPause = document.getElementById('overlayPause');
+  const overlayOver = document.getElementById('overlayOver');
+
+  function showOverlay(which) {
+    [overlayStart, overlayPause, overlayOver].forEach(o => o.classList.remove('active'));
+    if (which) which.classList.add('active');
+  }
+
+  // ---- Audio (Web Audio API, procedural SFX) ----
+  let audioCtx = null;
+  let muted = false;
+  function ensureAudio() {
+    if (!audioCtx) {
+      try { audioCtx = new (window.AudioContext || window.webkitAudioContext)(); } catch (e) { audioCtx = null; }
+    }
+    if (audioCtx && audioCtx.state === 'suspended') audioCtx.resume();
+  }
+  function beep(freq, dur = 0.08, type = 'square', vol = 0.18, slideTo = null) {
+    if (muted || !audioCtx) return;
+    const now = audioCtx.currentTime;
+    const osc = audioCtx.createOscillator();
+    const gain = audioCtx.createGain();
+    osc.type = type;
+    osc.frequency.setValueAtTime(freq, now);
+    if (slideTo) osc.frequency.exponentialRampToValueAtTime(slideTo, now + dur);
+    gain.gain.setValueAtTime(vol, now);
+    gain.gain.exponentialRampToValueAtTime(0.0008, now + dur);
+    osc.connect(gain).connect(audioCtx.destination);
+    osc.start(now);
+    osc.stop(now + dur + 0.02);
+  }
+
+  // ---- Helpers ----
+  const rand = (min, max) => Math.random() * (max - min) + min;
+  const randInt = (min, max) => Math.floor(Math.random() * (max - min + 1)) + min;
+  const clamp = (v, lo, hi) => Math.max(lo, Math.min(hi, v));
+
+  function reset() {
+    const mid = Math.floor(GRID / 2);
+    snake = [
+      { x: mid, y: mid },
+      { x: mid - 1, y: mid },
+      { x: mid - 2, y: mid },
+    ];
+    dir = { x: 1, y: 0 };
+    nextDir = { x: 1, y: 0 };
+    score = 0;
+    grow = 0;
+    particles = [];
+    tickInterval = 135;   // ms per move
+    acc = 0;
+    lastTime = 0;
+    interpT = 0;
+    shake = 0;
+    placeFood();
+    updateHUD();
+  }
+
+  function placeFood() {
+    let p;
+    do {
+      p = { x: randInt(0, GRID - 1), y: randInt(0, GRID - 1) };
+    } while (snake.some(s => s.x === p.x && s.y === p.y));
+    food = p;
+  }
+
+  function updateHUD() {
+    elScore.textContent = score;
+    elBest.textContent = best;
+  }
+
+  // ---- Particles ----
+  function spawnParticles(px, py, color, count = 16) {
+    for (let i = 0; i < count; i++) {
+      const ang = rand(0, Math.PI * 2);
+      const spd = rand(40, 180);
+      particles.push({
+        x: px, y: py,
+        vx: Math.cos(ang) * spd,
+        vy: Math.sin(ang) * spd,
+        life: rand(0.35, 0.7),
+        maxLife: 0.7,
+        color,
+        size: rand(2, 5),
+      });
+    }
+  }
+
+  function updateParticles(dt) {
+    for (let i = particles.length - 1; i >= 0; i--) {
+      const p = particles[i];
+      p.x += p.vx * dt;
+      p.y += p.vy * dt;
+      p.vx *= 0.92;
+      p.vy *= 0.92;
+      p.life -= dt;
+      if (p.life <= 0) particles.splice(i, 1);
+    }
+  }
+
+  // ---- Input ----
+  function setDir(nx, ny) {
+    // prevent reversing directly into self
+    if (nx === -dir.x && ny === -dir.y) return;
+    nextDir = { x: nx, y: ny };
+  }
+
+  document.addEventListener('keydown', (e) => {
+    const k = e.key;
+    if (['ArrowUp', 'ArrowDown', 'ArrowLeft', 'ArrowRight', ' '].includes(k)) e.preventDefault();
+    if (state === STATE.START || state === STATE.OVER) {
+      if (k === ' ' || k === 'Enter') startGame();
+      return;
+    }
+    if (k === ' ') {
+      if (state === STATE.PLAYING) pause();
+      else if (state === STATE.PAUSED) resume();
+      return;
+    }
+    if (state !== STATE.PLAYING) return;
+    switch (k) {
+      case 'ArrowUp': case 'w': case 'W': setDir(0, -1); break;
+      case 'ArrowDown': case 's': case 'S': setDir(0, 1); break;
+      case 'ArrowLeft': case 'a': case 'A': setDir(-1, 0); break;
+      case 'ArrowRight': case 'd': case 'D': setDir(1, 0); break;
+    }
+  });
+
+  // D-pad buttons
+  document.getElementById('dpad').addEventListener('click', (e) => {
+    const btn = e.target.closest('[data-dir]');
+    if (!btn) return;
+    if (state === STATE.START || state === STATE.OVER) { startGame(); return; }
+    if (state === STATE.PAUSED) { resume(); }
+    const d = btn.dataset.dir;
+    if (d === 'up') setDir(0, -1);
+    else if (d === 'down') setDir(0, 1);
+    else if (d === 'left') setDir(-1, 0);
+    else if (d === 'right') setDir(1, 0);
+  });
+
+  // Swipe controls
+  let touchStart = null;
+  const stage = document.getElementById('stage');
+  stage.addEventListener('touchstart', (e) => {
+    if (e.touches.length === 1) touchStart = { x: e.touches[0].clientX, y: e.touches[0].clientY };
+  }, { passive: true });
+  stage.addEventListener('touchend', (e) => {
+    if (!touchStart) return;
+    const t = e.changedTouches[0];
+    const dx = t.clientX - touchStart.x;
+    const dy = t.clientY - touchStart.y;
+    const adx = Math.abs(dx), ady = Math.abs(dy);
+    if (Math.max(adx, ady) < 24) {
+      // tap → start/pause
+      if (state === STATE.START || state === STATE.OVER) startGame();
+      else if (state === STATE.PLAYING) pause();
+      else if (state === STATE.PAUSED) resume();
+    } else {
+      if (state === STATE.START || state === STATE.OVER) { startGame(); return; }
+      if (state === STATE.PAUSED) resume();
+      if (adx > ady) setDir(dx > 0 ? 1 : -1, 0);
+      else setDir(0, dy > 0 ? 1 : -1);
+    }
+    touchStart = null;
+  }, { passive: true });
+
+  // Buttons
+  document.getElementById('startBtn').addEventListener('click', startGame);
+  document.getElementById('retryBtn').addEventListener('click', startGame);
+  document.getElementById('resumeBtn').addEventListener('click', resume);
+
+  const muteBtn = document.getElementById('muteBtn');
+  const iconSound = document.getElementById('iconSound');
+  const iconMuted = document.getElementById('iconMuted');
+  muteBtn.addEventListener('click', () => {
+    muted = !muted;
+    iconSound.style.display = muted ? 'none' : 'block';
+    iconMuted.style.display = muted ? 'block' : 'none';
+    muteBtn.setAttribute('aria-label', muted ? 'Unmute' : 'Mute');
+    muteBtn.title = muted ? 'Unmute' : 'Mute';
+  });
+
+  // ---- Game flow ----
+  function startGame() {
+    ensureAudio();
+    reset();
+    state = STATE.PLAYING;
+    showOverlay(null);
+  }
+  function pause() {
+    if (state !== STATE.PLAYING) return;
+    state = STATE.PAUSED;
+    showOverlay(overlayPause);
+  }
+  function resume() {
+    if (state !== STATE.PAUSED) return;
+    state = STATE.PLAYING;
+    showOverlay(null);
+  }
+  function gameOver() {
+    state = STATE.OVER;
+    beep(220, 0.12, 'sawtooth', 0.2, 90);
+    beep(140, 0.22, 'sawtooth', 0.16, 70);
+    if (score > best) best = score;
+    elFinalScore.textContent = score;
+    elFinalBest.textContent = best;
+    elFinalLen.textContent = snake.length;
+    showOverlay(overlayOver);
+  }
+
+  // ---- Tick (logical move) ----
+  function tick() {
+    dir = nextDir;
+    const head = snake[0];
+    const newHead = { x: head.x + dir.x, y: head.y + dir.y };
+
+    // wall collision
+    if (newHead.x < 0 || newHead.x >= GRID || newHead.y < 0 || newHead.y >= GRID) {
+      // death burst at head
+      const hx = (head.x + 0.5) * cell, hy = (head.y + 0.5) * cell;
+      spawnParticles(hx, hy, '#ff5e8a', 26);
+      shake = 14;
+      gameOver();
+      return;
+    }
+    // self collision (ignore tail tip unless growing)
+    const checkSnake = grow > 0 ? snake : snake.slice(0, snake.length - 1);
+    if (checkSnake.some(s => s.x === newHead.x && s.y === newHead.y)) {
+      const hx = (newHead.x + 0.5) * cell, hy = (newHead.y + 0.5) * cell;
+      spawnParticles(hx, hy, '#ff5e8a', 26);
+      shake = 14;
+      gameOver();
+      return;
+    }
+
+    snake.unshift(newHead);
+
+    if (food && newHead.x === food.x && newHead.y === food.y) {
+      score += 10;
+      const fx = (food.x + 0.5) * cell, fy = (food.y + 0.5) * cell;
+      spawnParticles(fx, fy, '#ff8fb0', 18);
+      spawnParticles(fx, fy, '#5effa0', 10);
+      beep(520, 0.07, 'square', 0.2, 760);
+      shake = 4;
+      grow += 1;          // make snake grow by extra segment (delayed removal)
+      placeFood();
+      // speed up gradually, floor at ~70ms
+      tickInterval = Math.max(70, tickInterval - 4);
+      updateHUD();
+    }
+
+    if (grow > 0) {
+      grow -= 1;          // skip removing tail this tick (grows)
+    } else {
+      snake.pop();
+    }
+  }
+
+  // ---- Rendering ----
+  function drawBackground() {
+    const w = cell * GRID, h = cell * GRID;
+    // base
+    ctx.fillStyle = '#06060f';
+    ctx.fillRect(0, 0, w, h);
+
+    // subtle radial glow center
+    const g = ctx.createRadialGradient(w / 2, h / 2, 0, w / 2, h / 2, w * 0.7);
+    g.addColorStop(0, 'rgba(124, 92, 255, 0.10)');
+    g.addColorStop(1, 'rgba(6, 6, 15, 0)');
+    ctx.fillStyle = g;
+    ctx.fillRect(0, 0, w, h);
+
+    // grid lines
+    ctx.strokeStyle = 'rgba(120, 140, 220, 0.06)';
+    ctx.lineWidth = 1;
+    ctx.beginPath();
+    for (let i = 1; i < GRID; i++) {
+      const p = Math.round(i * cell) + 0.5;
+      ctx.moveTo(p, 0); ctx.lineTo(p, h);
+      ctx.moveTo(0, p); ctx.lineTo(w, p);
+    }
+    ctx.stroke();
+  }
+
+  function roundRect(x, y, w, h, r) {
+    r = Math.min(r, w / 2, h / 2);
+    ctx.beginPath();
+    ctx.moveTo(x + r, y);
+    ctx.arcTo(x + w, y, x + w, y + h, r);
+    ctx.arcTo(x + w, y + h, x, y + h, r);
+    ctx.arcTo(x, y + h, x, y, r);
+    ctx.arcTo(x, y, x + w, y, r);
+    ctx.closePath();
+  }
+
+  function drawSnake() {
+    const n = snake.length;
+    // glow pass
+    ctx.save();
+    ctx.shadowColor = 'rgba(94, 255, 160, 0.55)';
+    ctx.shadowBlur = 16;
+    for (let i = n - 1; i >= 0; i--) {
+      const s = snake[i];
+      const t = n <= 1 ? 0 : i / (n - 1);
+      // interpolate position for smoothness between ticks
+      const px = (s.x + 0.5) * cell;
+      const py = (s.y + 0.5) * cell;
+      const isHead = i === 0;
+
+      // color gradient from head (bright green) -> tail (cyan)
+      const r = Math.round(94 + (24 - 94) * t);
+      const g = Math.round(255 + (185 - 255) * t);
+      const b = Math.round(160 + (196 - 160) * t);
+      const fill = `rgb(${r}, ${g}, ${b})`;
+
+      const pad = isHead ? cell * 0.12 : cell * 0.16;
+      const size = cell - pad * 2;
+      const radius = isHead ? cell * 0.32 : cell * 0.3;
+
+      ctx.fillStyle = fill;
+      roundRect(px - size / 2, py - size / 2, size, size, radius);
+      ctx.fill();
+    }
+    ctx.restore();
+
+    // head highlight + eyes
+    if (n > 0) {
+      const head = snake[0];
+      const px = (head.x + 0.5) * cell;
+      const py = (head.y + 0.5) * cell;
+      // glossy highlight
+      ctx.save();
+      ctx.fillStyle = 'rgba(255, 255, 255, 0.22)';
+      const hsize = cell * 0.7;
+      roundRect(px - hsize / 2, py - hsize / 2, hsize, hsize * 0.5, cell * 0.25);
+      ctx.fill();
+      ctx.restore();
+
+      // eyes oriented by direction
+      const ex = dir.x, ey = dir.y;
+      const perpX = -ey, perpY = ex;
+      const eyeOff = cell * 0.16;
+      const fwd = cell * 0.12;
+      for (const s of [1, -1]) {
+        const cxp = px + ex * fwd + perpX * eyeOff * s;
+        const cyp = py + ey * fwd + perpY * eyeOff * s;
+        ctx.fillStyle = '#04140c';
+        ctx.beginPath();
+        ctx.arc(cxp, cyp, cell * 0.085, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.fillStyle = '#eafff0';
+        ctx.beginPath();
+        ctx.arc(cxp + ex * 1.2, cyp + ey * 1.2, cell * 0.035, 0, Math.PI * 2);
+        ctx.fill();
+      }
+    }
+  }
+
+  function drawFood() {
+    if (!food) return;
+    const px = (food.x + 0.5) * cell;
+    const py = (food.y + 0.5) * cell;
+    const pulse = 1 + Math.sin(foodPulse * 6) * 0.08;
+    const r = cell * 0.34 * pulse;
+
+    ctx.save();
+    // glow
+    ctx.shadowColor = 'rgba(255, 94, 138, 0.8)';
+    ctx.shadowBlur = 22;
+    const grad = ctx.createRadialGradient(px - r * 0.3, py - r * 0.3, 0, px, py, r);
+    grad.addColorStop(0, '#ffb0c8');
+    grad.addColorStop(0.55, '#ff5e8a');
+    grad.addColorStop(1, '#d63b6c');
+    ctx.fillStyle = grad;
+    ctx.beginPath();
+    ctx.arc(px, py, r, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.restore();
+
+    // small highlight
+    ctx.fillStyle = 'rgba(255, 255, 255, 0.5)';
+    ctx.beginPath();
+    ctx.arc(px - r * 0.35, py - r * 0.35, r * 0.25, 0, Math.PI * 2);
+    ctx.fill();
+  }
+
+  function drawParticles() {
+    for (const p of particles) {
+      const a = clamp(p.life / p.maxLife, 0, 1);
+      ctx.globalAlpha = a;
+      ctx.fillStyle = p.color;
+      ctx.shadowColor = p.color;
+      ctx.shadowBlur = 8;
+      ctx.beginPath();
+      ctx.arc(p.x, p.y, p.size * a, 0, Math.PI * 2);
+      ctx.fill();
+    }
+    ctx.globalAlpha = 1;
+    ctx.shadowBlur = 0;
+  }
+
+  function render() {
+    const dpr = Math.min(window.devicePixelRatio || 1, 2);
+    const w = cell * GRID, h = cell * GRID;
+    ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+    ctx.clearRect(0, 0, w, h);
+
+    if (shake > 0) {
+      const sx = rand(-shake, shake);
+      const sy = rand(-shake, shake);
+      ctx.translate(sx, sy);
+      shake *= 0.85;
+      if (shake < 0.4) shake = 0;
+    }
+
+    drawBackground();
+    drawFood();
+    drawSnake();
+    drawParticles();
+  }
+
+  // ---- Main loop ----
+  function loop(timestamp) {
+    if (!lastTime) lastTime = timestamp;
+    let dt = (timestamp - lastTime) / 1000;
+    lastTime = timestamp;
+    if (dt > 0.1) dt = 0.1; // tab switch guard
+
+    if (state === STATE.PLAYING) {
+      foodPulse += dt;
+      acc += dt * 1000;
+      while (acc >= tickInterval) {
+        acc -= tickInterval;
+        tick();
+        if (state !== STATE.PLAYING) break;
+      }
+    } else {
+      foodPulse += dt;
+    }
+
+    updateParticles(dt);
+    if (cell === 0) recalcCell(); // safety: ensure layout settled
+    render();
+    requestAnimationFrame(loop);
+  }
+
+  // ---- Canvas sizing (HiDPI-aware, draws in CSS pixels) ----
+  function recalcCell() {
+    const dpr = Math.min(window.devicePixelRatio || 1, 2);
+    const cssSize = canvas.clientWidth;
+    canvas.width = Math.round(cssSize * dpr);
+    canvas.height = Math.round(cssSize * dpr);
+    ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+    cell = cssSize / GRID;
+  }
+  window.addEventListener('resize', recalcCell);
+
+  // ---- Boot ----
+  recalcCell();
+  // recompute once layout/fonts settle (covers late layout)
+  requestAnimationFrame(() => { recalcCell(); });
+  reset();
+  state = STATE.START;
+  updateHUD();
+  showOverlay(overlayStart);
+  requestAnimationFrame(loop);
+
+  // expose for debugging
+  window.__snake = { get state() { return state; }, get cell() { return cell; }, reset: () => { reset(); state = STATE.START; showOverlay(overlayStart); } };
+})();
+</script>
+<script data-pplx-inline-edit>
+(function () {
+  if (window === window.top) return;
+
+  const allowedParentOrigins = ["https://www.perplexity.ai","https://perplexity.ai","https://testing.perplexity.ai","https://staging.perplexity.ai","https://*.preview.i.perplexity.ai","http://perplexity.localhost","http://localhost:1420","http://127.0.0.1:1420","http://localhost:3000","http://127.0.0.1:3000","http://localhost:5173","http://127.0.0.1:5173"];
+  const MAX_FONT_BYTES = 500 * 1024;
+  const MAX_TOTAL_FONT_BYTES = 2 * 1024 * 1024;
+  let scrollForwarding = false;
+  let scrollRaf = 0;
+  let trustedTopOrigin = null;
+
+  // Allow entries like "https://*.preview.i.perplexity.ai" — the wildcard
+  // matches a single DNS label (no dots), so "https://*.foo" cannot stretch
+  // across multiple labels.
+  function matchesAllowedOrigin(origin) {
+    if (!origin) return false;
+    for (const entry of allowedParentOrigins) {
+      if (!entry.includes("*")) {
+        if (entry === origin) return true;
+        continue;
+      }
+      const pattern = new RegExp(
+        "^" +
+          entry.replace(/[.+?^${}()|[\]\\]/g, "\\$&").replace(/\*/g, "[^.]+") +
+          "$",
+      );
+      if (pattern.test(origin)) return true;
+    }
+    return false;
+  }
+
+  // Trust decision: when the sender is same-origin-visible (event.origin is a
+  // real origin like https://www.perplexity.ai) we trust event.origin directly.
+  // When event.origin is "null" (opaque broker srcdoc), we fall back to the
+  // broker's stamped `parentOrigin` to identify the top window. The fallback
+  // is claim-only — we rely on the browser's native `targetOrigin` enforcement
+  // on the response path (see postToTrustedTop) to ensure replies can't be
+  // delivered to anyone but the actual top window of that claimed origin.
+  function getTrustedParentOrigin(event) {
+    const forwardedParentOrigin =
+      typeof event.data.parentOrigin === "string" ? event.data.parentOrigin : null;
+    const parentOrigin = event.origin === "null" ? forwardedParentOrigin : event.origin;
+    return matchesAllowedOrigin(parentOrigin) ? parentOrigin : null;
+  }
+
+  // All responses go to window.top with targetOrigin = the allowlisted origin.
+  // An attacker that iframes us inside their own null-origin broker can claim
+  // any parentOrigin they like, but the browser will drop the reply whenever
+  // the real top's origin doesn't match — so the screenshot never leaves.
+  function postToTrustedTop(message) {
+    if (!trustedTopOrigin) return;
+    try {
+      window.top.postMessage(message, trustedTopOrigin);
+    } catch (_error) {}
+  }
+
+  function inlineAll(original, clone) {
+    if (original.nodeType !== 1 || clone.nodeType !== 1) return;
+
+    try {
+      const computedStyle = getComputedStyle(original);
+      // cssText on a computed style is the serialized declaration in modern
+      // Chromium/Safari — a single read beats enumerating ~400 longhand
+      // properties. Firefox returns "" here, so we fall back on empty.
+      const serialized = computedStyle.cssText;
+      if (serialized) {
+        clone.style.cssText = serialized;
+      } else {
+        const parts = new Array(computedStyle.length);
+        for (let index = 0; index < computedStyle.length; index += 1) {
+          const property = computedStyle[index];
+          parts[index] = `${property}:${computedStyle.getPropertyValue(property)};`;
+        }
+        clone.style.cssText = parts.join("");
+      }
+    } catch (_error) {}
+
+    const originalChildren = original.children;
+    const clonedChildren = clone.children;
+    for (
+      let index = 0;
+      index < originalChildren.length && index < clonedChildren.length;
+      index += 1
+    ) {
+      inlineAll(originalChildren[index], clonedChildren[index]);
+    }
+  }
+
+  function extractFontUrl(srcValue) {
+    const matches = [
+      ...srcValue.matchAll(
+        /url\(["']?([^"')]+)["']?\)(?:\s*format\(["']?([^"')]+)["']?\))?/gi,
+      ),
+    ];
+    if (matches.length === 0) return null;
+    const woff2 = matches.find((m) => m[2] && m[2].toLowerCase().includes("woff2"));
+    if (woff2) return woff2[1];
+    const woff = matches.find((m) => m[2] && m[2].toLowerCase().includes("woff"));
+    if (woff) return woff[1];
+    return matches[0][1];
+  }
+
+  // Cache resolved font URL -> data URI across captures. Fonts on a page
+  // essentially never change, and a batch run emits multiple captures back to
+  // back — without this we'd refetch + re-base64 every time.
+  const fontDataUriCache = new Map();
+  const SRC_DECLARATION_RE = /src\s*:\s*[^;}]+/i;
+
+  async function fetchAsDataUri(url) {
+    if (fontDataUriCache.has(url)) return fontDataUriCache.get(url);
+    let dataUri = null;
+    try {
+      const response = await fetch(url, { mode: "cors", credentials: "omit" });
+      if (response.ok) {
+        const blob = await response.blob();
+        if (blob.size <= MAX_FONT_BYTES) {
+          dataUri = await new Promise((resolve) => {
+            const reader = new FileReader();
+            reader.onloadend = () =>
+              resolve(typeof reader.result === "string" ? reader.result : null);
+            reader.onerror = () => resolve(null);
+            reader.readAsDataURL(blob);
+          });
+        }
+      }
+    } catch (_error) {
+      dataUri = null;
+    }
+    fontDataUriCache.set(url, dataUri);
+    return dataUri;
+  }
+
+  function collectFontFaceRuleTexts() {
+    const rules = [];
+    for (const sheet of document.styleSheets) {
+      let cssRules;
+      try {
+        cssRules = sheet.cssRules;
+      } catch (_error) {
+        continue;
+      }
+      if (!cssRules) continue;
+      for (const rule of cssRules) {
+        const cssText = rule.cssText || "";
+        if (cssText.startsWith("@font-face")) rules.push(cssText);
+      }
+    }
+    return rules;
+  }
+
+  async function buildInlinedFontCss() {
+    const ruleTexts = collectFontFaceRuleTexts();
+    if (ruleTexts.length === 0) return null;
+
+    const resolved = ruleTexts.map((cssText) => {
+      if (!SRC_DECLARATION_RE.test(cssText)) return null;
+      const srcMatch = cssText.match(/src\s*:\s*([^;}]+)[;}]/i);
+      if (!srcMatch) return null;
+      const url = extractFontUrl(srcMatch[1]);
+      if (!url) return null;
+      try {
+        return { cssText, url: new URL(url, document.baseURI).href };
+      } catch (_error) {
+        return null;
+      }
+    });
+
+    const dataUris = await Promise.all(
+      resolved.map((entry) => (entry ? fetchAsDataUri(entry.url) : Promise.resolve(null))),
+    );
+
+    const inlined = [];
+    let totalBytes = 0;
+    for (let index = 0; index < resolved.length; index += 1) {
+      const entry = resolved[index];
+      const dataUri = dataUris[index];
+      if (!entry || !dataUri) continue;
+      const approxBytes = dataUri.length * 0.75;
+      if (totalBytes + approxBytes > MAX_TOTAL_FONT_BYTES) break;
+      totalBytes += approxBytes;
+      inlined.push(entry.cssText.replace(SRC_DECLARATION_RE, `src: url("${dataUri}")`));
+    }
+    return inlined.length > 0 ? inlined.join("\n") : null;
+  }
+
+  function stripExternal(clone) {
+    const images = clone.querySelectorAll("img");
+    for (let index = 0; index < images.length; index += 1) {
+      const src = images[index].getAttribute("src");
+      if (src && !src.startsWith("data:")) images[index].removeAttribute("src");
+    }
+
+    const elements = clone.querySelectorAll("*");
+    for (let index = 0; index < elements.length; index += 1) {
+      const style = elements[index].style.cssText;
+      if (style && style.includes("url(")) {
+        elements[index].style.cssText = style.replace(
+          /url\(["']?(?!data:)[^)"']*["']?\)/gi,
+          "none",
+        );
+      }
+    }
+  }
+
+  function emitScroll() {
+    scrollRaf = 0;
+    if (!scrollForwarding) return;
+    postToTrustedTop({
+      type: "INLINE_EDIT_SCROLL",
+      scrollX: window.scrollX,
+      scrollY: window.scrollY,
+    });
+  }
+
+  window.addEventListener(
+    "scroll",
+    function () {
+      if (!scrollForwarding || scrollRaf) return;
+      scrollRaf = requestAnimationFrame(emitScroll);
+    },
+    { passive: true, capture: true },
+  );
+
+  async function handleCaptureRequest(event) {
+    const requestId = event.data.requestId;
+    const scrollX = window.scrollX;
+    const scrollY = window.scrollY;
+    const width = window.innerWidth;
+    const height = window.innerHeight;
+
+    function postResult(dataUrl) {
+      postToTrustedTop({
+        type: "INLINE_EDIT_SCREENSHOT_RESULT",
+        requestId,
+        dataUrl,
+        scrollX,
+        scrollY,
+      });
+    }
+
+    try {
+      // Wait for any pending web fonts to resolve so both inline metrics and
+      // the @font-face inlining below see the same loaded faces.
+      if (document.fonts && document.fonts.ready) {
+        try {
+          await document.fonts.ready;
+        } catch (_error) {}
+      }
+
+      const clone = document.documentElement.cloneNode(true);
+      inlineAll(document.documentElement, clone);
+
+      const removedNodes = clone.querySelectorAll("script,link[rel=\"stylesheet\"],style");
+      for (let index = 0; index < removedNodes.length; index += 1) {
+        removedNodes[index].remove();
+      }
+
+      stripExternal(clone);
+
+      // Re-embed web fonts as data-URI @font-face rules so the SVG rasterizer
+      // can resolve them — external font URLs aren't fetched during
+      // foreignObject rendering, which would otherwise force a fallback face
+      // and change text metrics.
+      const inlinedFontCss = await buildInlinedFontCss();
+      if (inlinedFontCss) {
+        const styleEl = document.createElement("style");
+        styleEl.textContent = inlinedFontCss;
+        const head = clone.querySelector("head");
+        if (head) head.appendChild(styleEl);
+        else clone.insertBefore(styleEl, clone.firstChild);
+      }
+
+      const html = new XMLSerializer().serializeToString(clone);
+      const svg =
+        `<svg xmlns="http://www.w3.org/2000/svg" width="${width}" height="${height}">` +
+        '<foreignObject width="100%" height="100%">' +
+        `<div xmlns="http://www.w3.org/1999/xhtml" style="width:${width}px;height:${height}px;overflow:hidden">` +
+        `<div style="position:relative;left:-${scrollX}px;top:-${scrollY}px">` +
+        html +
+        "</div></div></foreignObject></svg>";
+      const svgUrl = `data:image/svg+xml;charset=utf-8,${encodeURIComponent(svg)}`;
+      const image = new Image();
+      image.onload = function () {
+        const canvas = document.createElement("canvas");
+        canvas.width = width;
+        canvas.height = height;
+        canvas.getContext("2d").drawImage(image, 0, 0);
+        postResult(canvas.toDataURL("image/png"));
+      };
+      image.onerror = function () {
+        postResult(null);
+      };
+      image.src = svgUrl;
+    } catch (_error) {
+      postResult(null);
+    }
+  }
+
+  window.addEventListener("message", function (event) {
+    if (!event.data) return;
+    // Only accept messages from the direct parent frame. Blocks sibling /
+    // unrelated-window postMessage senders that could otherwise reach us.
+    if (event.source !== window.parent) return;
+
+    const trustedParentOrigin = getTrustedParentOrigin(event);
+    if (!trustedParentOrigin) return;
+    trustedTopOrigin = trustedParentOrigin;
+
+    if (event.data.type === "INLINE_EDIT_SCROLL_START") {
+      scrollForwarding = true;
+      emitScroll();
+      return;
+    }
+
+    if (event.data.type === "INLINE_EDIT_SCROLL_STOP") {
+      scrollForwarding = false;
+      if (scrollRaf) cancelAnimationFrame(scrollRaf);
+      scrollRaf = 0;
+      return;
+    }
+
+    if (event.data.type !== "INLINE_EDIT_CAPTURE_REQUEST") return;
+
+    handleCaptureRequest(event);
+  });
+})();
+
+
+</script></body>
+</html>
