@@ -1,0 +1,347 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+<title>Sudoku</title>
+<style>
+:root {
+  --bg: #f8fafc;
+  --ink: #202124;
+  --muted: #5f6368;
+  --panel: #fff;
+  --line: #dadce0;
+  --strong: #202124;
+  --blue: #1a73e8;
+  --blue-soft: #d2e3fc;
+  --red: #ea4335;
+  --green: #34a853;
+  --shadow: 0 12px 34px rgba(60, 64, 67, 0.18);
+  --font: Arial, Helvetica, sans-serif;
+}
+* { box-sizing: border-box; }
+body {
+  margin: 0;
+  min-height: 100dvh;
+  padding: 18px;
+  display: flex;
+  justify-content: center;
+  color: var(--ink);
+  background: linear-gradient(180deg, #e8f0fe, var(--bg));
+  font-family: var(--font);
+}
+.app { width: min(100%, 760px); }
+.topbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 14px;
+}
+.left { display: flex; align-items: center; gap: 10px; }
+.icon-btn {
+  width: 42px;
+  height: 42px;
+  border: 1px solid var(--line);
+  border-radius: 50%;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--muted);
+  background: var(--panel);
+  text-decoration: none;
+  cursor: pointer;
+}
+h1 { margin: 0; font-size: 30px; letter-spacing: 0; }
+.layout {
+  display: grid;
+  grid-template-columns: minmax(280px, 500px) 220px;
+  gap: 16px;
+  align-items: start;
+}
+.board {
+  display: grid;
+  grid-template-columns: repeat(9, 1fr);
+  aspect-ratio: 1 / 1;
+  border: 3px solid var(--strong);
+  background: var(--strong);
+  box-shadow: var(--shadow);
+}
+.cell {
+  border: 1px solid var(--line);
+  background: #fff;
+  color: var(--blue);
+  font-size: clamp(20px, 6vw, 34px);
+  font-weight: 500;
+  text-align: center;
+  cursor: pointer;
+  position: relative;
+}
+.cell:nth-child(3n) { border-right-color: var(--strong); }
+.cell:nth-child(n+19):nth-child(-n+27),
+.cell:nth-child(n+46):nth-child(-n+54) { border-bottom-color: var(--strong); }
+.cell.given { color: var(--ink); font-weight: 800; }
+.cell.selected { background: var(--blue-soft); }
+.cell.related { background: #eef3fe; }
+.cell.bad { color: var(--red); }
+.notes {
+  position: absolute;
+  inset: 3px;
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  color: #5f6368;
+  font-size: clamp(8px, 2.2vw, 11px);
+  font-weight: 700;
+}
+.side {
+  display: grid;
+  gap: 12px;
+}
+.panel {
+  padding: 14px;
+  border: 1px solid var(--line);
+  border-radius: 18px;
+  background: var(--panel);
+  box-shadow: var(--shadow);
+}
+.stat-row {
+  display: flex;
+  justify-content: space-between;
+  gap: 8px;
+  color: var(--muted);
+  font-size: 14px;
+  font-weight: 700;
+}
+.keypad {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 8px;
+}
+button, select {
+  min-height: 42px;
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  color: var(--ink);
+  background: #fff;
+  font-size: 16px;
+  font-weight: 800;
+  cursor: pointer;
+}
+.num {
+  color: var(--blue);
+  font-size: 23px;
+}
+.primary, .toggle.active {
+  color: #fff;
+  background: var(--blue);
+  border-color: var(--blue);
+}
+.success { color: var(--green); font-weight: 800; text-align: center; min-height: 20px; }
+@media (max-width: 760px) {
+  body { padding: 10px; }
+  .layout { grid-template-columns: 1fr; }
+  .side { grid-template-columns: 1fr; }
+}
+</style>
+</head>
+<body>
+<div class="app">
+  <header class="topbar">
+    <div class="left">
+      <a class="icon-btn" href="index.html" aria-label="Back to games" title="Back to games">
+        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.25" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m15 18-6-6 6-6"/><path d="M21 12H9"/></svg>
+      </a>
+      <h1>Sudoku</h1>
+    </div>
+    <select id="difficulty" aria-label="Difficulty">
+      <option value="easy">Easy</option>
+      <option value="medium" selected>Medium</option>
+      <option value="hard">Hard</option>
+    </select>
+  </header>
+
+  <main class="layout">
+    <section class="board" id="board" aria-label="Sudoku board"></section>
+    <aside class="side">
+      <div class="panel">
+        <div class="stat-row"><span>Mistakes</span><span id="mistakes">0 / 3</span></div>
+        <div class="stat-row"><span>Filled</span><span id="filled">0 / 81</span></div>
+      </div>
+      <div class="panel keypad" id="keypad"></div>
+      <div class="panel keypad">
+        <button class="toggle" id="notes" type="button">Notes</button>
+        <button id="erase" type="button">Erase</button>
+        <button id="hint" type="button">Hint</button>
+        <button class="primary" id="check" type="button">Check</button>
+        <button id="new" type="button">New</button>
+      </div>
+      <div class="success" id="message"></div>
+    </aside>
+  </main>
+</div>
+
+<script>
+(() => {
+  const base = [
+    [1,2,3,4,5,6,7,8,9],
+    [4,5,6,7,8,9,1,2,3],
+    [7,8,9,1,2,3,4,5,6],
+    [2,3,4,5,6,7,8,9,1],
+    [5,6,7,8,9,1,2,3,4],
+    [8,9,1,2,3,4,5,6,7],
+    [3,4,5,6,7,8,9,1,2],
+    [6,7,8,9,1,2,3,4,5],
+    [9,1,2,3,4,5,6,7,8]
+  ];
+  const holes = { easy: 36, medium: 46, hard: 55 };
+  const boardEl = document.getElementById("board");
+  const keypad = document.getElementById("keypad");
+  let solution, puzzle, given, notes, selected, noteMode, mistakes, ended;
+
+  function shuffle(items) {
+    const copy = [...items];
+    for (let i = copy.length - 1; i > 0; i--) {
+      const j = Math.floor(Math.random() * (i + 1));
+      [copy[i], copy[j]] = [copy[j], copy[i]];
+    }
+    return copy;
+  }
+  function generateSolution() {
+    const map = shuffle([1,2,3,4,5,6,7,8,9]);
+    const rows = shuffle([0,1,2]).flatMap(b => shuffle([0,1,2]).map(r => b * 3 + r));
+    const cols = shuffle([0,1,2]).flatMap(b => shuffle([0,1,2]).map(c => b * 3 + c));
+    return rows.map(r => cols.map(c => map[base[r][c] - 1]));
+  }
+  function newGame() {
+    solution = generateSolution();
+    puzzle = solution.map(row => [...row]);
+    given = Array.from({ length: 9 }, () => Array(9).fill(true));
+    notes = Array.from({ length: 9 }, () => Array.from({ length: 9 }, () => new Set()));
+    selected = [0, 0];
+    mistakes = 0;
+    ended = false;
+    noteMode = false;
+    let toRemove = holes[document.getElementById("difficulty").value];
+    while (toRemove > 0) {
+      const r = Math.floor(Math.random() * 9);
+      const c = Math.floor(Math.random() * 9);
+      if (!puzzle[r][c]) continue;
+      puzzle[r][c] = 0;
+      given[r][c] = false;
+      toRemove -= 1;
+    }
+    document.getElementById("message").textContent = "";
+    render();
+  }
+  function sameBox(r, c, sr, sc) {
+    return Math.floor(r / 3) === Math.floor(sr / 3) && Math.floor(c / 3) === Math.floor(sc / 3);
+  }
+  function render() {
+    boardEl.innerHTML = "";
+    const [sr, sc] = selected;
+    let filled = 0;
+    for (let r = 0; r < 9; r++) {
+      for (let c = 0; c < 9; c++) {
+        if (puzzle[r][c]) filled += 1;
+        const button = document.createElement("button");
+        button.className = "cell";
+        button.type = "button";
+        if (given[r][c]) button.classList.add("given");
+        if (r === sr && c === sc) button.classList.add("selected");
+        else if (r === sr || c === sc || sameBox(r, c, sr, sc)) button.classList.add("related");
+        if (puzzle[r][c]) {
+          button.textContent = puzzle[r][c];
+          if (puzzle[r][c] !== solution[r][c]) button.classList.add("bad");
+        } else if (notes[r][c].size) {
+          const noteGrid = document.createElement("span");
+          noteGrid.className = "notes";
+          for (let n = 1; n <= 9; n++) {
+            const span = document.createElement("span");
+            span.textContent = notes[r][c].has(n) ? n : "";
+            noteGrid.appendChild(span);
+          }
+          button.appendChild(noteGrid);
+        }
+        button.addEventListener("click", () => { selected = [r, c]; render(); });
+        boardEl.appendChild(button);
+      }
+    }
+    document.getElementById("mistakes").textContent = `${mistakes} / 3`;
+    document.getElementById("filled").textContent = `${filled} / 81`;
+    document.getElementById("notes").classList.toggle("active", noteMode);
+    if (filled === 81 && puzzle.every((row, r) => row.every((v, c) => v === solution[r][c]))) {
+      ended = true;
+      document.getElementById("message").textContent = "Solved.";
+    }
+  }
+  function enter(value) {
+    if (ended) return;
+    const [r, c] = selected;
+    if (given[r][c]) return;
+    if (noteMode) {
+      if (notes[r][c].has(value)) notes[r][c].delete(value);
+      else notes[r][c].add(value);
+      render();
+      return;
+    }
+    puzzle[r][c] = value;
+    notes[r][c].clear();
+    if (value !== solution[r][c]) {
+      mistakes += 1;
+      if (mistakes >= 3) {
+        ended = true;
+        document.getElementById("message").textContent = "Game over.";
+      }
+    }
+    render();
+  }
+  function erase() {
+    const [r, c] = selected;
+    if (given[r][c] || ended) return;
+    puzzle[r][c] = 0;
+    notes[r][c].clear();
+    render();
+  }
+  function hint() {
+    const empties = [];
+    for (let r = 0; r < 9; r++) for (let c = 0; c < 9; c++) if (!given[r][c] && puzzle[r][c] !== solution[r][c]) empties.push([r, c]);
+    if (!empties.length) return;
+    const [r, c] = empties[Math.floor(Math.random() * empties.length)];
+    selected = [r, c];
+    puzzle[r][c] = solution[r][c];
+    notes[r][c].clear();
+    render();
+  }
+  function check() {
+    const wrong = puzzle.some((row, r) => row.some((v, c) => v && v !== solution[r][c]));
+    document.getElementById("message").textContent = wrong ? "There is at least one mistake." : "Looks good.";
+  }
+  for (let n = 1; n <= 9; n++) {
+    const button = document.createElement("button");
+    button.className = "num";
+    button.type = "button";
+    button.textContent = n;
+    button.addEventListener("click", () => enter(n));
+    keypad.appendChild(button);
+  }
+  document.addEventListener("keydown", event => {
+    const [r, c] = selected;
+    if (/^[1-9]$/.test(event.key)) enter(Number(event.key));
+    if (event.key === "Backspace" || event.key === "Delete") erase();
+    if (event.key === "ArrowUp") selected = [Math.max(0, r - 1), c];
+    if (event.key === "ArrowDown") selected = [Math.min(8, r + 1), c];
+    if (event.key === "ArrowLeft") selected = [r, Math.max(0, c - 1)];
+    if (event.key === "ArrowRight") selected = [r, Math.min(8, c + 1)];
+    if (event.key.startsWith("Arrow")) { event.preventDefault(); render(); }
+  });
+  document.getElementById("notes").addEventListener("click", () => { noteMode = !noteMode; render(); });
+  document.getElementById("erase").addEventListener("click", erase);
+  document.getElementById("hint").addEventListener("click", hint);
+  document.getElementById("check").addEventListener("click", check);
+  document.getElementById("new").addEventListener("click", newGame);
+  document.getElementById("difficulty").addEventListener("change", newGame);
+  newGame();
+})();
+</script>
+</body>
+</html>

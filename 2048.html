@@ -1,0 +1,341 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+<title>2048</title>
+<style>
+:root {
+  --bg: #faf8ef;
+  --ink: #776e65;
+  --muted: #8f7a66;
+  --panel: #bbada0;
+  --empty: rgba(238, 228, 218, 0.35);
+  --accent: #8f7a66;
+  --button: #8f7a66;
+  --font: Arial, Helvetica, sans-serif;
+}
+[data-theme="night"] {
+  --bg: #111827;
+  --ink: #f9fafb;
+  --muted: #cbd5e1;
+  --panel: #334155;
+  --empty: rgba(148, 163, 184, 0.22);
+  --accent: #38bdf8;
+  --button: #2563eb;
+}
+[data-theme="candy"] {
+  --bg: #fff1f7;
+  --ink: #5b2142;
+  --muted: #9d4771;
+  --panel: #f5a6c8;
+  --empty: rgba(255, 255, 255, 0.42);
+  --accent: #ec4899;
+  --button: #db2777;
+}
+[data-theme="forest"] {
+  --bg: #f1f8e9;
+  --ink: #27492d;
+  --muted: #4f6f52;
+  --panel: #8aa66b;
+  --empty: rgba(255, 255, 255, 0.38);
+  --accent: #2e7d32;
+  --button: #2e7d32;
+}
+* { box-sizing: border-box; }
+body {
+  margin: 0;
+  min-height: 100dvh;
+  padding: 18px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--bg);
+  color: var(--ink);
+  font-family: var(--font);
+  -webkit-font-smoothing: antialiased;
+}
+.app { width: min(100%, 520px); }
+.topbar, .actions, .scores {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+}
+.topbar { margin-bottom: 16px; }
+.left { display: flex; align-items: center; gap: 10px; }
+.icon-btn {
+  width: 42px;
+  height: 42px;
+  border: 0;
+  border-radius: 12px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  color: #fff;
+  background: var(--button);
+  text-decoration: none;
+  cursor: pointer;
+}
+h1 { margin: 0; font-size: 54px; line-height: 1; letter-spacing: 0; }
+.score {
+  min-width: 82px;
+  padding: 8px 12px;
+  border-radius: 8px;
+  color: #fff;
+  background: var(--panel);
+  text-align: center;
+}
+.label { display: block; font-size: 11px; font-weight: 800; text-transform: uppercase; opacity: 0.75; }
+.value { display: block; font-size: 21px; font-weight: 900; }
+.intro {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 14px;
+  color: var(--muted);
+  font-size: 15px;
+  line-height: 1.4;
+}
+.actions { flex: none; }
+button, select {
+  height: 42px;
+  border: 0;
+  border-radius: 8px;
+  padding: 0 14px;
+  color: #fff;
+  background: var(--button);
+  font-weight: 800;
+  cursor: pointer;
+}
+select { color: var(--ink); background: rgba(255, 255, 255, 0.7); border: 1px solid rgba(0, 0, 0, 0.1); }
+.board {
+  position: relative;
+  width: 100%;
+  aspect-ratio: 1 / 1;
+  padding: 14px;
+  border-radius: 10px;
+  background: var(--panel);
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 14px;
+}
+.cell, .tile {
+  border-radius: 7px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 900;
+}
+.cell { background: var(--empty); }
+.tile {
+  width: 100%;
+  height: 100%;
+  color: #776e65;
+  font-size: clamp(28px, 10vw, 54px);
+  animation: pop 120ms ease;
+}
+.v2 { background: #eee4da; }
+.v4 { background: #ede0c8; }
+.v8 { background: #f2b179; color: #f9f6f2; }
+.v16 { background: #f59563; color: #f9f6f2; }
+.v32 { background: #f67c5f; color: #f9f6f2; }
+.v64 { background: #f65e3b; color: #f9f6f2; }
+.v128 { background: #edcf72; color: #f9f6f2; font-size: clamp(24px, 8vw, 46px); }
+.v256 { background: #edcc61; color: #f9f6f2; font-size: clamp(24px, 8vw, 46px); }
+.v512 { background: #edc850; color: #f9f6f2; font-size: clamp(24px, 8vw, 46px); }
+.v1024 { background: #edc53f; color: #f9f6f2; font-size: clamp(20px, 7vw, 38px); }
+.v2048 { background: var(--accent); color: #fff; font-size: clamp(20px, 7vw, 38px); }
+.v4096, .v8192 { background: #3c3a32; color: #fff; font-size: clamp(20px, 7vw, 36px); }
+.message {
+  margin-top: 14px;
+  min-height: 22px;
+  color: var(--muted);
+  font-weight: 800;
+  text-align: center;
+}
+@keyframes pop { from { transform: scale(0.88); } to { transform: scale(1); } }
+@media (max-width: 520px) {
+  body { padding: 12px; }
+  h1 { font-size: 42px; }
+  .topbar, .intro { align-items: flex-start; }
+  .intro { flex-direction: column; }
+  .board { padding: 10px; gap: 10px; }
+}
+</style>
+</head>
+<body data-theme="classic">
+<div class="app">
+  <header class="topbar">
+    <div class="left">
+      <a class="icon-btn" href="index.html" aria-label="Back to games" title="Back to games">
+        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.25" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m15 18-6-6 6-6"/><path d="M21 12H9"/></svg>
+      </a>
+      <h1>2048</h1>
+    </div>
+    <div class="scores">
+      <div class="score"><span class="label">Score</span><span class="value" id="score">0</span></div>
+      <div class="score"><span class="label">Best</span><span class="value" id="best">0</span></div>
+    </div>
+  </header>
+
+  <div class="intro">
+    <strong>Join the tiles, get to 2048.</strong>
+    <div class="actions">
+      <select id="theme" aria-label="Theme">
+        <option value="classic">Classic</option>
+        <option value="night">Night</option>
+        <option value="candy">Candy</option>
+        <option value="forest">Forest</option>
+      </select>
+      <button id="undo" type="button">Undo</button>
+      <button id="new" type="button">New</button>
+    </div>
+  </div>
+
+  <div class="board" id="board" aria-label="2048 board"></div>
+  <div class="message" id="message"></div>
+</div>
+
+<script>
+(() => {
+  const boardEl = document.getElementById("board");
+  const scoreEl = document.getElementById("score");
+  const bestEl = document.getElementById("best");
+  const messageEl = document.getElementById("message");
+  const themeEl = document.getElementById("theme");
+  let grid, score, best, previous, touchStart;
+  best = Number(localStorage.getItem("game_2048_best") || "0");
+  bestEl.textContent = best;
+
+  function clone(state) { return state.map(row => [...row]); }
+  function emptyCells() {
+    const empty = [];
+    grid.forEach((row, r) => row.forEach((value, c) => { if (!value) empty.push([r, c]); }));
+    return empty;
+  }
+  function addTile() {
+    const empty = emptyCells();
+    if (!empty.length) return;
+    const [r, c] = empty[Math.floor(Math.random() * empty.length)];
+    grid[r][c] = Math.random() < 0.9 ? 2 : 4;
+  }
+  function newGame() {
+    grid = Array.from({ length: 4 }, () => Array(4).fill(0));
+    score = 0;
+    previous = null;
+    messageEl.textContent = "";
+    addTile();
+    addTile();
+    render();
+  }
+  function render() {
+    scoreEl.textContent = score;
+    best = Math.max(best, score);
+    localStorage.setItem("game_2048_best", String(best));
+    bestEl.textContent = best;
+    boardEl.innerHTML = "";
+    for (let r = 0; r < 4; r++) {
+      for (let c = 0; c < 4; c++) {
+        const cell = document.createElement("div");
+        cell.className = "cell";
+        if (grid[r][c]) {
+          const tile = document.createElement("div");
+          tile.className = `tile v${Math.min(grid[r][c], 8192)}`;
+          tile.textContent = grid[r][c];
+          cell.appendChild(tile);
+        }
+        boardEl.appendChild(cell);
+      }
+    }
+  }
+  function slide(line) {
+    const values = line.filter(Boolean);
+    const out = [];
+    for (let i = 0; i < values.length; i++) {
+      if (values[i] === values[i + 1]) {
+        const merged = values[i] * 2;
+        out.push(merged);
+        score += merged;
+        i += 1;
+      } else {
+        out.push(values[i]);
+      }
+    }
+    while (out.length < 4) out.push(0);
+    return out;
+  }
+  function move(dir) {
+    const before = JSON.stringify(grid);
+    previous = { grid: clone(grid), score };
+    for (let i = 0; i < 4; i++) {
+      let line;
+      if (dir === "left") line = grid[i];
+      if (dir === "right") line = [...grid[i]].reverse();
+      if (dir === "up") line = grid.map(row => row[i]);
+      if (dir === "down") line = grid.map(row => row[i]).reverse();
+      let moved = slide(line);
+      if (dir === "right" || dir === "down") moved = moved.reverse();
+      for (let j = 0; j < 4; j++) {
+        if (dir === "left" || dir === "right") grid[i][j] = moved[j];
+        else grid[j][i] = moved[j];
+      }
+    }
+    if (JSON.stringify(grid) === before) {
+      previous = null;
+      return;
+    }
+    addTile();
+    render();
+    if (grid.flat().includes(2048)) messageEl.textContent = "2048 reached. Keep going.";
+    else if (!canMove()) messageEl.textContent = "No moves left.";
+  }
+  function canMove() {
+    if (emptyCells().length) return true;
+    for (let r = 0; r < 4; r++) {
+      for (let c = 0; c < 4; c++) {
+        if (grid[r][c] === grid[r + 1]?.[c] || grid[r][c] === grid[r]?.[c + 1]) return true;
+      }
+    }
+    return false;
+  }
+  function undo() {
+    if (!previous) return;
+    grid = clone(previous.grid);
+    score = previous.score;
+    previous = null;
+    messageEl.textContent = "";
+    render();
+  }
+  document.addEventListener("keydown", event => {
+    const map = { ArrowUp: "up", ArrowDown: "down", ArrowLeft: "left", ArrowRight: "right", w: "up", s: "down", a: "left", d: "right", W: "up", S: "down", A: "left", D: "right" };
+    if (!map[event.key]) return;
+    event.preventDefault();
+    move(map[event.key]);
+  });
+  boardEl.addEventListener("touchstart", event => {
+    const t = event.touches[0];
+    touchStart = { x: t.clientX, y: t.clientY };
+  }, { passive: true });
+  boardEl.addEventListener("touchend", event => {
+    if (!touchStart) return;
+    const t = event.changedTouches[0];
+    const dx = t.clientX - touchStart.x;
+    const dy = t.clientY - touchStart.y;
+    touchStart = null;
+    if (Math.max(Math.abs(dx), Math.abs(dy)) < 24) return;
+    move(Math.abs(dx) > Math.abs(dy) ? (dx > 0 ? "right" : "left") : (dy > 0 ? "down" : "up"));
+  }, { passive: true });
+  document.getElementById("new").addEventListener("click", newGame);
+  document.getElementById("undo").addEventListener("click", undo);
+  themeEl.addEventListener("change", () => {
+    document.body.dataset.theme = themeEl.value;
+    localStorage.setItem("game_2048_theme", themeEl.value);
+  });
+  themeEl.value = localStorage.getItem("game_2048_theme") || "classic";
+  document.body.dataset.theme = themeEl.value;
+  newGame();
+})();
+</script>
+</body>
+</html>

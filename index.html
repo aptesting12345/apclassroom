@@ -1,57 +1,192 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>My Games</title>
-
   <style>
+    :root {
+      --bg: #f8fafc;
+      --ink: #111827;
+      --muted: #64748b;
+      --panel: #ffffff;
+      --line: #e2e8f0;
+      --blue: #2563eb;
+      --green: #16a34a;
+      --yellow: #f59e0b;
+      --purple: #7c3aed;
+      --red: #dc2626;
+      --teal: #0d9488;
+      --shadow: 0 16px 42px rgba(15, 23, 42, 0.12);
+    }
+
+    * { box-sizing: border-box; }
+
     body {
-      font-family: Arial, sans-serif;
-      background: #111827;
-      color: white;
-      max-width: 700px;
+      margin: 0;
+      min-height: 100dvh;
+      padding: 34px 20px;
+      font-family: Arial, Helvetica, sans-serif;
+      color: var(--ink);
+      background:
+        radial-gradient(circle at top left, rgba(37, 99, 235, 0.14), transparent 34%),
+        radial-gradient(circle at top right, rgba(22, 163, 74, 0.13), transparent 30%),
+        var(--bg);
+      -webkit-font-smoothing: antialiased;
+    }
+
+    main {
+      width: min(100%, 980px);
       margin: 0 auto;
-      padding: 50px 20px;
+    }
+
+    header {
+      margin-bottom: 26px;
+      display: flex;
+      align-items: end;
+      justify-content: space-between;
+      gap: 18px;
     }
 
     h1 {
+      margin: 0;
+      font-size: clamp(34px, 7vw, 58px);
+      line-height: 0.95;
+      letter-spacing: 0;
+    }
+
+    p {
+      margin: 9px 0 0;
+      color: var(--muted);
+      font-size: 17px;
+      line-height: 1.4;
+    }
+
+    .count {
+      min-width: 108px;
+      padding: 12px 16px;
+      border: 1px solid var(--line);
+      border-radius: 18px;
+      background: rgba(255, 255, 255, 0.74);
       text-align: center;
+      box-shadow: 0 1px 2px rgba(15, 23, 42, 0.06);
     }
 
-    ul {
-      list-style: none;
-      padding: 0;
-    }
-
-    li {
-      margin: 15px 0;
-    }
-
-    a {
+    .count strong {
       display: block;
-      padding: 16px 20px;
-      background: #2563eb;
-      color: white;
-      text-decoration: none;
-      border-radius: 8px;
-      font-size: 18px;
+      font-size: 26px;
     }
 
-    a:hover {
-      background: #1d4ed8;
+    .count span {
+      color: var(--muted);
+      font-size: 12px;
+      font-weight: 800;
+      text-transform: uppercase;
+    }
+
+    .grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+      gap: 16px;
+    }
+
+    .card {
+      min-height: 156px;
+      padding: 18px;
+      border: 1px solid var(--line);
+      border-radius: 18px;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      color: var(--ink);
+      background: var(--panel);
+      box-shadow: var(--shadow);
+      text-decoration: none;
+      transition: transform 160ms ease, box-shadow 160ms ease;
+    }
+
+    .card:hover {
+      transform: translateY(-3px);
+      box-shadow: 0 20px 52px rgba(15, 23, 42, 0.16);
+    }
+
+    .icon {
+      width: 44px;
+      height: 44px;
+      border-radius: 14px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: #fff;
+      font-size: 23px;
+      font-weight: 900;
+    }
+
+    .card h2 {
+      margin: 18px 0 5px;
+      font-size: 23px;
+      line-height: 1.1;
+      letter-spacing: 0;
+    }
+
+    .card p {
+      margin: 0;
+      font-size: 14px;
+    }
+
+    .wordle .icon { background: var(--green); }
+    .snake .icon { background: var(--green); }
+    .connections .icon { background: var(--purple); }
+    .slope .icon { background: var(--blue); }
+    .minesweeper .icon { background: var(--yellow); }
+    .game2048 .icon { background: var(--red); }
+    .tetris .icon { background: var(--teal); }
+    .sudoku .icon { background: #475569; }
+
+    @media (max-width: 620px) {
+      body { padding: 24px 14px; }
+      header { align-items: flex-start; flex-direction: column; }
+      .count { text-align: left; }
+      .card { min-height: 138px; border-radius: 14px; }
     }
   </style>
 </head>
-
 <body>
-  <h1>My HTML Games</h1>
+  <main>
+    <header>
+      <div>
+        <h1>My HTML Games</h1>
+        <p>Pick a game and play right in the browser.</p>
+      </div>
+      <div class="count"><strong>8</strong><span>Games</span></div>
+    </header>
 
-  <ul>
-    <li><a href="wordle.html">Wordle Unlimited</a></li>
-    <li><a href="snake.html">Snake</a></li>
-    <li><a href="connections.html">Connections Unlimited</a></li>
-    <li><a href="games/v1.2.5/index.html">Slope</a></li>
-  </ul>
+    <section class="grid" aria-label="Game dashboard">
+      <a class="card wordle" href="wordle.html">
+        <div><div class="icon">W</div><h2>Wordle Unlimited</h2><p>Guess the hidden five-letter word.</p></div>
+      </a>
+      <a class="card snake" href="snake.html">
+        <div><div class="icon">S</div><h2>Snake</h2><p>Smooth classic snake with clean arcade controls.</p></div>
+      </a>
+      <a class="card connections" href="connections.html">
+        <div><div class="icon">C</div><h2>Connections Unlimited</h2><p>Find four clever groups of related words.</p></div>
+      </a>
+      <a class="card slope" href="games/v1.2.5/index.html">
+        <div><div class="icon">↘</div><h2>Slope</h2><p>Roll fast, dodge hazards, and stay on the track.</p></div>
+      </a>
+      <a class="card minesweeper" href="minesweeper.html">
+        <div><div class="icon">✹</div><h2>Minesweeper</h2><p>Clear the board without hitting a mine.</p></div>
+      </a>
+      <a class="card game2048" href="2048.html">
+        <div><div class="icon">2</div><h2>2048</h2><p>Merge tiles across four visual themes.</p></div>
+      </a>
+      <a class="card tetris" href="tetris.html">
+        <div><div class="icon">T</div><h2>Tetris</h2><p>Stack blocks, clear lines, and raise the level.</p></div>
+      </a>
+      <a class="card sudoku" href="sudoku.html">
+        <div><div class="icon">9</div><h2>Sudoku</h2><p>Play generated puzzles with notes and hints.</p></div>
+      </a>
+    </section>
+  </main>
 </body>
 </html>
