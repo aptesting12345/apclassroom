@@ -74,6 +74,11 @@ h1 {
   border-bottom: 1px solid #3a3a3c;
   flex-shrink: 0;
 }
+#header-left {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+}
 #header-right {
   display: flex;
   align-items: center;
@@ -296,9 +301,14 @@ h1 {
 <body>
 <div id="game">
   <div id="header">
-    <button class="header-button" id="help-btn" title="How to play">
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
-    </button>
+    <div id="header-left">
+      <a class="header-button" href="index.html" aria-label="Back to games" title="Back to games">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="m15 18-6-6 6-6"/><path d="M21 12H9"/></svg>
+      </a>
+      <button class="header-button" id="help-btn" title="How to play">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
+      </button>
+    </div>
     <h1>Wordle Unlimited</h1>
     <div id="header-right">
       <button class="header-button" id="stats-btn" title="Statistics">

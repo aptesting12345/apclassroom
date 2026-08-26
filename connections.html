@@ -6,589 +6,753 @@
 <title>Connections Unlimited</title>
 <style>
 :root {
-  --bg-color: #121213;
-  --board-bg-color: #121213;
-  --text-color: #ffffff;
-  --key-text-color: #ffffff;
-  --tile-border-color: #3a3a3c;
-  --tile-border-color-filled: #565758;
-  --default-tile-color: #3a3a3c;
-  --default-tile-color-hover: #4a4a4c;
-  --evaluating-correct-color: #6aaa64;
-  --evaluating-present-color: #c9b458;
-  --evaluating-absent-color: #3a3a3c;
-  --key-evaluating-correct-color: #6aaa64;
-  --key-evaluating-present-color: #c9b458;
-  --key-evaluating-absent-color: #3a3a3c;
-  --key-bg-color: #818384;
-  --key-hover-color: #565758;
-  --key-unguessed-color: #818384;
-  --header-color: #ffffff;
-  --toast-bg-color: #ffffff;
-  --toast-text-color: #000000;
-  --modal-content-bg: #211e1c;
-  --modal-text-color: #ffffff;
-  --game-id-color: rgba(255,255,255,0.5);
-  --font: 'Helvetica Neue', Arial, sans-serif;
-  --category-yellow: #f4d35e;
-  --category-green: #6aaa64;
-  --category-blue: #4a90e2;
-  --category-purple: #b8a8db;
+  --bg: #ffffff;
+  --ink: #121212;
+  --muted: #5f5f5f;
+  --line: #dcdcdc;
+  --tile: #efefe6;
+  --tile-hover: #e2e2d8;
+  --selected: #5a594e;
+  --yellow: #f9df6d;
+  --green: #a0c35a;
+  --blue: #b0c4ef;
+  --purple: #ba81c5;
+  --font: Arial, Helvetica, sans-serif;
 }
+
+* {
+  box-sizing: border-box;
+}
+
 html {
-  background-color: var(--bg-color);
+  background: var(--bg);
   overscroll-behavior: none;
 }
+
 body {
   margin: 0;
-  padding: 0;
-  min-height: 100%;
-  height: 100%;
-  overflow: hidden;
+  min-height: 100dvh;
   font-family: var(--font);
-  position: relative;
-  background-color: var(--bg-color);
-  color: var(--text-color);
+  color: var(--ink);
+  background: var(--bg);
   -webkit-font-smoothing: antialiased;
 }
-h1 {
-  font-size: 20px;
-  font-weight: 700;
-  margin: 0;
-  color: var(--header-color);
-  letter-spacing: 0.04em;
-  text-transform: uppercase;
-  white-space: nowrap;
-}
+
 #game {
+  width: 100%;
+  max-width: 640px;
+  min-height: 100dvh;
+  margin: 0 auto;
   display: flex;
   flex-direction: column;
-  height: 100dvh;
-  max-width: 500px;
-  margin: 0 auto;
-  overflow: hidden;
-  position: relative;
 }
+
 #header {
-  display: flex;
+  height: 64px;
+  padding: 0 18px;
+  border-bottom: 1px solid var(--line);
+  display: grid;
+  grid-template-columns: 1fr auto 1fr;
   align-items: center;
-  justify-content: space-between;
-  padding: 0 16px;
-  height: 50px;
-  border-bottom: 1px solid #3a3a3c;
-  flex-shrink: 0;
+  flex: none;
 }
+
+#header-left,
 #header-right {
   display: flex;
   align-items: center;
-  gap: 14px;
+  gap: 10px;
 }
+
+#header-right {
+  justify-content: flex-end;
+}
+
+h1 {
+  margin: 0;
+  font-size: 29px;
+  line-height: 1;
+  font-weight: 800;
+  letter-spacing: 0;
+}
+
 .header-button {
-  cursor: pointer;
-  border: none;
-  background: none;
-  color: var(--header-color);
+  width: 34px;
+  height: 34px;
   padding: 0;
-  display: flex;
+  border: none;
+  border-radius: 50%;
+  display: inline-flex;
   align-items: center;
-}
-.header-button svg {
-  width: 24px;
-  height: 24px;
-}
-#game-id {
-  font-size: 11px;
-  font-weight: 700;
-  color: var(--game-id-color);
-  text-align: right;
-}
-#board-container {
-  display: flex;
   justify-content: center;
-  align-items: center;
-  flex-grow: 1;
-  overflow: hidden;
-  padding: 10px;
-}
-#board {
-  display: grid;
-  grid-template-columns: repeat(4, 1fr);
-  grid-template-rows: repeat(4, 1fr);
-  gap: 8px;
-  width: 100%;
-  max-width: 400px;
-  aspect-ratio: 1 / 1;
-  box-sizing: border-box;
-}
-.tile {
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  border: 2px solid var(--tile-border-color);
-  font-size: 1rem;
-  font-weight: bold;
-  text-transform: uppercase;
-  box-sizing: border-box;
-  border-radius: 4px;
-  width: 100%;
-  height: 100%;
+  color: var(--ink);
+  background: transparent;
   cursor: pointer;
-  transition: all 0.1s;
-  user-select: none;
-  background-color: var(--default-tile-color);
 }
-.tile:hover:not(.solved):not(.selected) {
-  background-color: var(--default-tile-color-hover);
+
+.header-button:hover {
+  background: #f1f1f1;
 }
-.tile.selected {
-  border-color: var(--tile-border-color-filled);
-  background-color: var(--tile-border-color-filled);
+
+.header-button svg {
+  width: 23px;
+  height: 23px;
 }
-.tile.solved {
-  color: white;
-  border: 2px solid transparent;
-}
-.tile.solved.category-yellow {
-  background-color: var(--category-yellow);
-}
-.tile.solved.category-green {
-  background-color: var(--category-green);
-}
-.tile.solved.category-blue {
-  background-color: var(--category-blue);
-}
-.tile.solved.category-purple {
-  background-color: var(--category-purple);
-}
-#controls {
+
+main {
+  flex: 1;
   display: flex;
   flex-direction: column;
-  gap: 10px;
-  padding: 0 10px 10px;
-  flex-shrink: 0;
+  padding: 22px 16px 18px;
 }
-#button-group {
-  display: flex;
+
+#subtitle {
+  margin: 0 0 18px;
+  font-size: 16px;
+  font-weight: 600;
+  text-align: center;
+}
+
+#board {
+  width: 100%;
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
   gap: 8px;
-  justify-content: center;
 }
-button {
-  cursor: pointer;
-  border: 2px solid var(--tile-border-color-filled);
-  background-color: var(--default-tile-color);
-  color: var(--text-color);
-  padding: 12px 24px;
-  font-size: 0.9rem;
-  font-weight: bold;
-  text-transform: uppercase;
-  border-radius: 4px;
-  transition: background-color 0.1s;
+
+.tile,
+.solved-group {
+  min-height: 78px;
+  border: 0;
+  border-radius: 6px;
   font-family: var(--font);
+  text-align: center;
 }
-button:hover:not(:disabled) {
-  background-color: var(--default-tile-color-hover);
+
+.tile {
+  padding: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--ink);
+  background: var(--tile);
+  font-size: clamp(12px, 2.7vw, 16px);
+  line-height: 1.05;
+  font-weight: 800;
+  letter-spacing: 0;
+  text-transform: uppercase;
+  cursor: pointer;
+  user-select: none;
+  transition: background 120ms ease, color 120ms ease, transform 120ms ease;
 }
-button:disabled {
-  opacity: 0.5;
-  cursor: not-allowed;
+
+.tile:hover {
+  background: var(--tile-hover);
 }
-#shuffle-btn {
-  flex: 1;
-  min-width: 80px;
+
+.tile.selected {
+  color: #fff;
+  background: var(--selected);
 }
-#deselect-btn {
-  flex: 1;
-  min-width: 80px;
+
+.tile.shake {
+  animation: shake 350ms ease;
 }
-#submit-btn {
-  flex: 1;
-  min-width: 80px;
+
+.solved-group {
+  grid-column: span 4;
+  padding: 12px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  color: var(--ink);
 }
+
+.solved-group.yellow { background: var(--yellow); }
+.solved-group.green { background: var(--green); }
+.solved-group.blue { background: var(--blue); }
+.solved-group.purple { background: var(--purple); }
+
+.solved-title {
+  margin-bottom: 5px;
+  font-size: 15px;
+  line-height: 1.1;
+  font-weight: 900;
+  text-transform: uppercase;
+}
+
+.solved-words {
+  font-size: 15px;
+  line-height: 1.25;
+  font-weight: 500;
+  text-transform: uppercase;
+}
+
+#mistakes {
+  min-height: 24px;
+  margin: 18px 0 16px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  color: var(--muted);
+  font-size: 14px;
+  font-weight: 500;
+}
+
+.mistake-dot {
+  width: 16px;
+  height: 16px;
+  border-radius: 50%;
+  background: #5a594e;
+  display: inline-block;
+}
+
+.mistake-dot.used {
+  opacity: 0.18;
+}
+
+#controls {
+  display: flex;
+  justify-content: center;
+  gap: 10px;
+  margin-top: auto;
+}
+
+.control-button,
+#modal-content button {
+  min-width: 104px;
+  min-height: 44px;
+  padding: 0 18px;
+  border: 1px solid var(--ink);
+  border-radius: 999px;
+  color: var(--ink);
+  background: var(--bg);
+  font-family: var(--font);
+  font-size: 15px;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.control-button.primary,
+#modal-content button {
+  color: #fff;
+  background: var(--ink);
+}
+
+.control-button:disabled {
+  color: #b6b6b6;
+  border-color: #d7d7d7;
+  background: var(--bg);
+  cursor: default;
+}
+
 #toast-container {
-  position: absolute;
-  top: 10%;
+  position: fixed;
+  top: 86px;
   left: 0;
   right: 0;
+  z-index: 20;
   display: flex;
   justify-content: center;
-  z-index: 10;
   pointer-events: none;
 }
+
 .toast {
-  background-color: var(--toast-bg-color);
-  color: var(--toast-text-color);
-  font-size: 0.9rem;
-  font-weight: bold;
-  padding: 10px 16px;
+  max-width: calc(100vw - 32px);
+  padding: 12px 16px;
   border-radius: 4px;
-  margin: 0 auto;
+  color: #fff;
+  background: var(--ink);
+  font-size: 15px;
+  font-weight: 800;
   opacity: 0;
-  transform: translateY(-10px);
-  transition: opacity 0.3s, transform 0.3s;
+  transform: translateY(-8px);
+  transition: opacity 180ms ease, transform 180ms ease;
 }
+
 .toast.show {
   opacity: 1;
   transform: translateY(0);
 }
+
 #modal {
   position: fixed;
   inset: 0;
-  background: rgba(0,0,0,0.5);
+  padding: 18px;
   display: none;
-  justify-content: center;
   align-items: center;
-  z-index: 100;
+  justify-content: center;
+  background: rgba(255, 255, 255, 0.72);
+  z-index: 50;
 }
+
 #modal-content {
-  background-color: var(--modal-content-bg);
-  color: var(--modal-text-color);
+  width: min(420px, 100%);
+  padding: 26px;
+  border: 1px solid var(--line);
   border-radius: 8px;
-  padding: 30px 40px;
   text-align: center;
-  max-width: 90%;
-  box-shadow: 0 4px 30px rgba(0,0,0,0.5);
+  color: var(--ink);
+  background: #fff;
+  box-shadow: 0 18px 60px rgba(0, 0, 0, 0.18);
 }
+
 #modal-content h2 {
-  margin: 0 0 8px;
-  font-size: 1.5rem;
+  margin: 0 0 10px;
+  font-size: 25px;
+  line-height: 1.1;
 }
-#modal-content .answer {
-  font-size: 1.2rem;
-  letter-spacing: 0.2em;
-  font-weight: bold;
-  text-transform: uppercase;
-  margin-bottom: 20px;
+
+#modal-message {
+  margin: 0 0 18px;
+  color: var(--muted);
+  font-size: 15px;
+  line-height: 1.35;
 }
-#modal-content button {
-  background-color: white;
-  color: black;
-  border: none;
-  border-radius: 4px;
-  padding: 12px 24px;
-  font-size: 1rem;
-  font-weight: bold;
-  text-transform: uppercase;
-  cursor: pointer;
-  font-family: var(--font);
-  margin-top: 10px;
-}
-#modal-content button:hover {
-  background-color: #ddd;
-}
+
 .stats {
-  display: flex;
-  justify-content: space-around;
-  margin: 16px 0;
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 8px;
+  margin: 18px 0;
 }
-.stat {
-  text-align: center;
+
+.stat .num {
+  font-size: 24px;
+  font-weight: 800;
 }
-.stat .num { font-size: 1.5rem; font-weight: bold; }
-.stat .label { font-size: 0.7rem; text-transform: uppercase; color: #888; }
-.progress {
-  text-align: left;
-  margin: 16px 0;
-}
-.progress .label {
-  font-size: 0.75rem;
+
+.stat .label {
+  color: var(--muted);
+  font-size: 10px;
+  font-weight: 700;
   text-transform: uppercase;
-  color: #888;
-  margin-bottom: 4px;
 }
-.progress-bar {
-  background: #3a3a3c;
-  height: 20px;
-  border-radius: 4px;
-  overflow: hidden;
+
+@keyframes shake {
+  0%, 100% { transform: translateX(0); }
+  20% { transform: translateX(-5px); }
+  40% { transform: translateX(5px); }
+  60% { transform: translateX(-4px); }
+  80% { transform: translateX(4px); }
 }
-.progress-fill {
-  height: 100%;
-  background: #6aaa64;
-  transition: width 0.3s;
+
+@media (max-width: 520px) {
+  #header {
+    height: 56px;
+    padding: 0 10px;
+  }
+
+  h1 {
+    font-size: 23px;
+  }
+
+  main {
+    padding: 16px 10px 14px;
+  }
+
+  #subtitle {
+    margin-bottom: 14px;
+    font-size: 15px;
+  }
+
+  #board {
+    gap: 6px;
+  }
+
+  .tile,
+  .solved-group {
+    min-height: 68px;
+    border-radius: 5px;
+  }
+
+  .tile {
+    padding: 5px;
+    font-size: clamp(10px, 3.1vw, 13px);
+  }
+
+  .solved-title,
+  .solved-words {
+    font-size: 13px;
+  }
+
+  #controls {
+    gap: 7px;
+  }
+
+  .control-button {
+    min-width: 0;
+    flex: 1;
+    padding: 0 10px;
+    font-size: 14px;
+  }
 }
 </style>
 </head>
 <body>
 <div id="game">
-  <div id="header">
-    <button class="header-button" id="help-btn" title="How to play">
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
-    </button>
-    <h1>Connections</h1>
-    <div id="header-right">
-      <button class="header-button" id="stats-btn" title="Statistics">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></svg>
+  <header id="header">
+    <div id="header-left">
+      <a class="header-button" href="index.html" aria-label="Back to games" title="Back to games">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.25" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m15 18-6-6 6-6"/><path d="M21 12H9"/></svg>
+      </a>
+      <button class="header-button" id="help-btn" type="button" aria-label="How to play" title="How to play">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.25" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="10"/><path d="M9.1 9a3 3 0 0 1 5.8 1c0 2-3 3-3 3"/><path d="M12 17h.01"/></svg>
       </button>
     </div>
-  </div>
-  <div id="board-container">
-    <div id="board"></div>
-  </div>
-  <div id="controls">
-    <div id="button-group">
-      <button id="shuffle-btn">Shuffle</button>
-      <button id="deselect-btn">Deselect All</button>
-      <button id="submit-btn">Submit</button>
+    <h1>Connections</h1>
+    <div id="header-right">
+      <button class="header-button" id="stats-btn" type="button" aria-label="Statistics" title="Statistics">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.25" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 3v18h18"/><path d="M7 16V9"/><path d="M12 16V5"/><path d="M17 16v-3"/></svg>
+      </button>
     </div>
-  </div>
-  <div id="toast-container"><div class="toast" id="toast"></div></div>
+  </header>
+
+  <main>
+    <p id="subtitle">Find groups of four related words.</p>
+    <section id="board" aria-label="Connections board"></section>
+    <div id="mistakes" aria-live="polite"></div>
+    <div id="controls">
+      <button class="control-button" id="shuffle-btn" type="button">Shuffle</button>
+      <button class="control-button" id="deselect-btn" type="button">Deselect All</button>
+      <button class="control-button primary" id="submit-btn" type="button">Submit</button>
+    </div>
+  </main>
+
+  <div id="toast-container"><div class="toast" id="toast" role="status" aria-live="polite"></div></div>
 </div>
 
-<div id="modal">
+<div id="modal" role="dialog" aria-modal="true" aria-labelledby="modal-title">
   <div id="modal-content">
     <h2 id="modal-title">--</h2>
-    <div class="answer" id="modal-answer"></div>
-    <div class="stats" id="modal-stats" style="display:none">
+    <p id="modal-message"></p>
+    <div class="stats" id="modal-stats">
       <div class="stat"><div class="num" id="stat-played">0</div><div class="label">Played</div></div>
       <div class="stat"><div class="num" id="stat-win">0</div><div class="label">Win %</div></div>
       <div class="stat"><div class="num" id="stat-streak">0</div><div class="label">Current<br>Streak</div></div>
       <div class="stat"><div class="num" id="stat-max">0</div><div class="label">Max<br>Streak</div></div>
     </div>
-    <div class="progress" id="modal-progress" style="display:none">
-      <div class="label">Guess Distribution</div>
-      <div class="progress-bar"><div class="progress-fill" id="progress-fill" style="width: 0%"></div></div>
-    </div>
-    <button id="next-btn">Next Game</button>
+    <button id="next-btn" type="button">Next Game</button>
   </div>
 </div>
 
 <script>
-// Example categories and words - customize as needed
-const CATEGORIES = [
+const PUZZLES = [
   {
-    name: "Fruits",
-    words: ["apple", "banana", "orange", "grape"],
-    category: "category-yellow"
+    id: 1,
+    groups: [
+      { label: "Kinds of tea", color: "yellow", words: ["BLACK", "GREEN", "HERBAL", "OOLONG"] },
+      { label: "Take advantage of", color: "green", words: ["MILK", "BLEED", "FLEECE", "EXPLOIT"] },
+      { label: "Parts of a play", color: "blue", words: ["ACT", "SCENE", "LINE", "CUE"] },
+      { label: "Words after fire", color: "purple", words: ["DRILL", "PLACE", "PROOF", "WORKS"] }
+    ]
   },
   {
-    name: "Colors",
-    words: ["red", "blue", "green", "yellow"],
-    category: "category-green"
+    id: 2,
+    groups: [
+      { label: "Make a mistake", color: "yellow", words: ["ERR", "FLUB", "SLIP", "BLOW"] },
+      { label: "Things with lenses", color: "green", words: ["CAMERA", "MICROSCOPE", "TELESCOPE", "GLASSES"] },
+      { label: "Keyboard keys", color: "blue", words: ["OPTION", "COMMAND", "SHIFT", "RETURN"] },
+      { label: "Words before box", color: "purple", words: ["BALLOT", "BENTO", "JUKE", "SHADOW"] }
+    ]
   },
   {
-    name: "Animals",
-    words: ["cat", "dog", "bird", "fish"],
-    category: "category-blue"
+    id: 3,
+    groups: [
+      { label: "Spices", color: "yellow", words: ["CUMIN", "PAPRIKA", "SAFFRON", "TURMERIC"] },
+      { label: "Move furtively", color: "green", words: ["CREEP", "PROWL", "SKULK", "SNEAK"] },
+      { label: "Newspaper sections", color: "blue", words: ["ARTS", "BUSINESS", "OPINION", "SPORTS"] },
+      { label: "Things with rings", color: "purple", words: ["CIRCUS", "PLANET", "TREE", "PHONE"] }
+    ]
   },
   {
-    name: "Sports",
-    words: ["tennis", "soccer", "baseball", "hockey"],
-    category: "category-purple"
+    id: 4,
+    groups: [
+      { label: "Unit of measurement", color: "yellow", words: ["GRAM", "LITER", "METER", "SECOND"] },
+      { label: "Not fully closed", color: "green", words: ["AJAR", "OPEN", "LOOSE", "UNFASTENED"] },
+      { label: "Classic arcade games", color: "blue", words: ["ASTEROIDS", "FROGGER", "GALAGA", "PAC-MAN"] },
+      { label: "Words after paper", color: "purple", words: ["CLIP", "CUT", "DOLL", "TRAIL"] }
+    ]
+  },
+  {
+    id: 5,
+    groups: [
+      { label: "Mild oaths", color: "yellow", words: ["DANG", "DARN", "HECK", "SHUCKS"] },
+      { label: "Display publicly", color: "green", words: ["AIR", "EXHIBIT", "SHOW", "PRESENT"] },
+      { label: "Parts of a ship", color: "blue", words: ["BOW", "DECK", "HULL", "STERN"] },
+      { label: "Words before light", color: "purple", words: ["BRAKE", "FLASH", "PORCH", "TRAFFIC"] }
+    ]
+  },
+  {
+    id: 6,
+    groups: [
+      { label: "Things in a deck", color: "yellow", words: ["ACE", "JACK", "KING", "QUEEN"] },
+      { label: "Quick looks", color: "green", words: ["GLANCE", "PEEK", "PEEP", "GLIMPSE"] },
+      { label: "Punctuation marks", color: "blue", words: ["COLON", "COMMA", "DASH", "PERIOD"] },
+      { label: "Words after snow", color: "purple", words: ["BALL", "DRIFT", "GLOBE", "PLOW"] }
+    ]
+  },
+  {
+    id: 7,
+    groups: [
+      { label: "Breakfast foods", color: "yellow", words: ["CEREAL", "OMELET", "PANCAKE", "WAFFLE"] },
+      { label: "Complain", color: "green", words: ["CARP", "GRIPE", "MOAN", "WHINE"] },
+      { label: "Things on a map", color: "blue", words: ["BORDER", "COMPASS", "LEGEND", "SCALE"] },
+      { label: "Words before stone", color: "purple", words: ["BIRTH", "CORNER", "MILE", "TOUCH"] }
+    ]
+  },
+  {
+    id: 8,
+    groups: [
+      { label: "Ways to pay", color: "yellow", words: ["CASH", "CHECK", "CREDIT", "VENMO"] },
+      { label: "Imitate", color: "green", words: ["COPY", "ECHO", "MIMIC", "PARROT"] },
+      { label: "Parts of a camera", color: "blue", words: ["FLASH", "LENS", "SHUTTER", "VIEWFINDER"] },
+      { label: "Words after star", color: "purple", words: ["FISH", "GAZER", "LIGHT", "STRUCK"] }
+    ]
+  },
+  {
+    id: 9,
+    groups: [
+      { label: "Things that are folded", color: "yellow", words: ["LETTER", "NAPKIN", "ORIGAMI", "TENT"] },
+      { label: "Reduce", color: "green", words: ["CURB", "LESSEN", "LOWER", "TRIM"] },
+      { label: "Musical symbols", color: "blue", words: ["CLEF", "REST", "SHARP", "STAFF"] },
+      { label: "Words before board", color: "purple", words: ["DASH", "SCORE", "SKATE", "SURF"] }
+    ]
+  },
+  {
+    id: 10,
+    groups: [
+      { label: "Cooking verbs", color: "yellow", words: ["BAKE", "BROIL", "ROAST", "SAUTE"] },
+      { label: "Highly skilled", color: "green", words: ["ADEPT", "EXPERT", "PRO", "VIRTUOSO"] },
+      { label: "Parts of a book", color: "blue", words: ["COVER", "INDEX", "SPINE", "TITLE"] },
+      { label: "Words after ice", color: "purple", words: ["BERG", "BREAKER", "CREAM", "SKATE"] }
+    ]
   }
 ];
 
-// Game state
-let currentGame = null;
-let selectedTiles = [];
-let mistakes = 0;
-let solvedCategories = [];
+const MAX_MISTAKES = 4;
 
-// Initialize game
+let currentPuzzle;
+let tiles = [];
+let selectedIds = [];
+let solvedGroupIndexes = [];
+let mistakes = 0;
+let gameOver = false;
+let toastTimer = null;
+
+function shuffle(items) {
+  const copy = [...items];
+  for (let i = copy.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [copy[i], copy[j]] = [copy[j], copy[i]];
+  }
+  return copy;
+}
+
+function choosePuzzle() {
+  const recent = Number(localStorage.getItem("connections_last_puzzle") || "0");
+  const options = PUZZLES.filter(puzzle => puzzle.id !== recent);
+  const puzzle = options[Math.floor(Math.random() * options.length)] || PUZZLES[0];
+  localStorage.setItem("connections_last_puzzle", String(puzzle.id));
+  return puzzle;
+}
+
 function initGame() {
+  currentPuzzle = choosePuzzle();
+  tiles = shuffle(currentPuzzle.groups.flatMap((group, groupIndex) => (
+    group.words.map((word, wordIndex) => ({
+      id: `${groupIndex}-${wordIndex}`,
+      word,
+      groupIndex
+    }))
+  )));
+  selectedIds = [];
+  solvedGroupIndexes = [];
   mistakes = 0;
-  selectedTiles = [];
-  solvedCategories = [];
-  currentGame = generateNewGame();
+  gameOver = false;
+  document.getElementById("modal").style.display = "none";
+  render();
+  updateButtonStates();
+}
+
+function render() {
+  renderBoard();
+  renderMistakes();
+}
+
+function renderBoard(shakeSelected = false) {
+  const board = document.getElementById("board");
+  board.innerHTML = "";
+
+  solvedGroupIndexes.forEach(groupIndex => {
+    board.appendChild(createSolvedGroup(groupIndex));
+  });
+
+  tiles
+    .filter(tile => !solvedGroupIndexes.includes(tile.groupIndex))
+    .forEach(tile => {
+      const button = document.createElement("button");
+      button.className = "tile";
+      button.type = "button";
+      button.textContent = tile.word;
+      button.dataset.id = tile.id;
+      if (selectedIds.includes(tile.id)) button.classList.add("selected");
+      if (shakeSelected && selectedIds.includes(tile.id)) button.classList.add("shake");
+      button.addEventListener("click", () => toggleTile(tile.id));
+      board.appendChild(button);
+    });
+}
+
+function createSolvedGroup(groupIndex) {
+  const group = currentPuzzle.groups[groupIndex];
+  const element = document.createElement("section");
+  element.className = `solved-group ${group.color}`;
+  element.innerHTML = `
+    <div class="solved-title">${group.label}</div>
+    <div class="solved-words">${group.words.join(", ")}</div>
+  `;
+  return element;
+}
+
+function renderMistakes() {
+  const mistakesEl = document.getElementById("mistakes");
+  const remaining = MAX_MISTAKES - mistakes;
+  const dots = Array.from({ length: MAX_MISTAKES }, (_, index) => (
+    `<span class="mistake-dot${index >= remaining ? " used" : ""}" aria-hidden="true"></span>`
+  )).join("");
+  mistakesEl.innerHTML = `Mistakes remaining: ${dots}`;
+}
+
+function toggleTile(tileId) {
+  if (gameOver) return;
+  const alreadySelected = selectedIds.includes(tileId);
+  if (alreadySelected) {
+    selectedIds = selectedIds.filter(id => id !== tileId);
+  } else if (selectedIds.length < 4) {
+    selectedIds.push(tileId);
+  }
   renderBoard();
   updateButtonStates();
 }
 
-function generateNewGame() {
-  // Shuffle categories
-  const categories = CATEGORIES.map(cat => ({ ...cat }));
-  categories.forEach(cat => {
-    cat.words = [...cat.words].sort(() => Math.random() - 0.5);
-  });
-  
-  // Flatten all words
-  let allWords = [];
-  categories.forEach(cat => {
-    cat.words.forEach(word => {
-      allWords.push({ word, category: cat });
-    });
-  });
-  
-  // Shuffle all words
-  allWords = allWords.sort(() => Math.random() - 0.5);
-  
-  return {
-    categories: categories,
-    tiles: allWords
-  };
-}
-
-function renderBoard() {
-  const board = document.getElementById("board");
-  board.innerHTML = "";
-  
-  currentGame.tiles.forEach((tile, index) => {
-    if (solvedCategories.includes(tile.category.name)) {
-      // Skip already solved categories
-      return;
-    }
-    
-    const tileEl = document.createElement("div");
-    tileEl.className = "tile";
-    tileEl.textContent = tile.word.toUpperCase();
-    tileEl.dataset.index = index;
-    
-    if (selectedTiles.some(t => t.index === index)) {
-      tileEl.classList.add("selected");
-    }
-    
-    // Mark solved tiles
-    if (solvedCategories.includes(tile.category.name)) {
-      tileEl.classList.add("solved", tile.category.category);
-    }
-    
-    tileEl.addEventListener("click", () => selectTile(index, tileEl));
-    board.appendChild(tileEl);
-  });
-}
-
-function selectTile(index, tileEl) {
-  if (solvedCategories.includes(currentGame.tiles[index].category.name)) {
-    return; // Can't select solved tiles
-  }
-  
-  const tileIndex = selectedTiles.findIndex(t => t.index === index);
-  if (tileIndex > -1) {
-    selectedTiles.splice(tileIndex, 1);
-    tileEl.classList.remove("selected");
-  } else {
-    if (selectedTiles.length < 4) {
-      selectedTiles.push({ index, tile: currentGame.tiles[index] });
-      tileEl.classList.add("selected");
-    }
-  }
-  
-  updateButtonStates();
-}
-
 function shuffleTiles() {
-  const unsolved = currentGame.tiles.filter(t => !solvedCategories.includes(t.category.name));
-  unsolved.sort(() => Math.random() - 0.5);
-  let newTiles = [];
-  currentGame.tiles.forEach((tile, i) => {
-    if (!solvedCategories.includes(tile.category.name)) {
-      const idx = newTiles.length;
-      newTiles.push(unsolved[idx]);
-    }
-  });
-  currentGame.tiles = newTiles.concat(currentGame.tiles.filter(t => solvedCategories.includes(t.category.name)));
-  selectedTiles = [];
+  if (gameOver) return;
+  const unsolved = shuffle(tiles.filter(tile => !solvedGroupIndexes.includes(tile.groupIndex)));
+  const solved = tiles.filter(tile => solvedGroupIndexes.includes(tile.groupIndex));
+  tiles = [...unsolved, ...solved];
+  selectedIds = [];
   renderBoard();
   updateButtonStates();
 }
 
 function deselectAll() {
-  selectedTiles = [];
+  selectedIds = [];
   renderBoard();
   updateButtonStates();
 }
 
 function submitGuess() {
-  if (selectedTiles.length !== 4) return;
-  
-  const categories = selectedTiles.map(t => t.tile.category);
-  const firstCategory = categories[0];
-  
-  if (categories.every(c => c.name === firstCategory.name)) {
-    // Correct guess!
-    solvedCategories.push(firstCategory.name);
-    selectedTiles = [];
-    
-    if (solvedCategories.length === 4) {
-      // Won the game!
-      endGame(true);
-    } else {
-      showToast("Correct!");
-      renderBoard();
+  if (selectedIds.length !== 4 || gameOver) return;
+
+  const guess = selectedIds.map(id => tiles.find(tile => tile.id === id));
+  const groupIndex = guess[0].groupIndex;
+  const correct = guess.every(tile => tile.groupIndex === groupIndex);
+
+  if (correct) {
+    solvedGroupIndexes.push(groupIndex);
+    selectedIds = [];
+    showToast(solvedGroupIndexes.length === 4 ? "Perfect!" : "Correct!");
+    render();
+    updateButtonStates();
+
+    if (solvedGroupIndexes.length === 4) {
+      setTimeout(() => endGame(true), 450);
     }
-  } else {
-    // Check if any 3 match
-    const grouped = {};
-    categories.forEach(c => {
-      grouped[c.name] = (grouped[c.name] || 0) + 1;
-    });
-    
-    const maxMatches = Math.max(...Object.values(grouped));
-    if (maxMatches === 3) {
-      showToast("One away...");
-    } else if (maxMatches === 2) {
-      showToast("Not quite...");
-    } else {
-      showToast("Nope!");
-    }
-    
-    mistakes++;
-    selectedTiles = [];
-    renderBoard();
-    
-    if (mistakes >= 4) {
-      endGame(false);
-    }
+    return;
   }
-  
-  updateButtonStates();
+
+  const counts = guess.reduce((map, tile) => {
+    map[tile.groupIndex] = (map[tile.groupIndex] || 0) + 1;
+    return map;
+  }, {});
+
+  mistakes += 1;
+  renderBoard(true);
+  renderMistakes();
+  showToast(Math.max(...Object.values(counts)) === 3 ? "One away..." : "Try again.");
+
+  setTimeout(() => {
+    selectedIds = [];
+    if (mistakes >= MAX_MISTAKES) {
+      gameOver = true;
+      solvedGroupIndexes = currentPuzzle.groups.map((_, index) => index);
+      render();
+      updateButtonStates();
+      setTimeout(() => endGame(false), 350);
+      return;
+    }
+    renderBoard();
+    updateButtonStates();
+  }, 420);
 }
 
 function updateButtonStates() {
-  document.getElementById("submit-btn").disabled = selectedTiles.length !== 4;
-  document.getElementById("deselect-btn").disabled = selectedTiles.length === 0;
-}
-
-function endGame(won) {
-  setTimeout(() => {
-    const modal = document.getElementById("modal");
-    const title = document.getElementById("modal-title");
-    const stats = document.getElementById("modal-stats");
-    
-    title.textContent = won ? "You Won!" : "Game Over";
-    stats.style.display = "flex";
-    
-    // Update stats
-    const played = parseInt(localStorage.getItem("connections_played") || 0) + 1;
-    const wins = parseInt(localStorage.getItem("connections_wins") || 0) + (won ? 1 : 0);
-    const streak = won ? (parseInt(localStorage.getItem("connections_streak") || 0) + 1) : 0;
-    const maxStreak = Math.max(streak, parseInt(localStorage.getItem("connections_max_streak") || 0));
-    
-    localStorage.setItem("connections_played", played);
-    localStorage.setItem("connections_wins", wins);
-    localStorage.setItem("connections_streak", streak);
-    localStorage.setItem("connections_max_streak", maxStreak);
-    
-    document.getElementById("stat-played").textContent = played;
-    document.getElementById("stat-win").textContent = Math.round((wins / played) * 100);
-    document.getElementById("stat-streak").textContent = streak;
-    document.getElementById("stat-max").textContent = maxStreak;
-    
-    modal.style.display = "flex";
-  }, 500);
+  document.getElementById("submit-btn").disabled = selectedIds.length !== 4 || gameOver;
+  document.getElementById("deselect-btn").disabled = selectedIds.length === 0 || gameOver;
+  document.getElementById("shuffle-btn").disabled = gameOver;
 }
 
 function showToast(message) {
   const toast = document.getElementById("toast");
+  clearTimeout(toastTimer);
   toast.textContent = message;
   toast.classList.add("show");
-  setTimeout(() => toast.classList.remove("show"), 2000);
+  toastTimer = setTimeout(() => toast.classList.remove("show"), 1600);
 }
 
-function nextGame() {
-  document.getElementById("modal").style.display = "none";
-  initGame();
+function endGame(won) {
+  const played = Number(localStorage.getItem("connections_played") || "0") + 1;
+  const wins = Number(localStorage.getItem("connections_wins") || "0") + (won ? 1 : 0);
+  const streak = won ? Number(localStorage.getItem("connections_streak") || "0") + 1 : 0;
+  const maxStreak = Math.max(streak, Number(localStorage.getItem("connections_max_streak") || "0"));
+
+  localStorage.setItem("connections_played", String(played));
+  localStorage.setItem("connections_wins", String(wins));
+  localStorage.setItem("connections_streak", String(streak));
+  localStorage.setItem("connections_max_streak", String(maxStreak));
+
+  document.getElementById("modal-title").textContent = won ? "You solved it" : "Better luck next time";
+  document.getElementById("modal-message").textContent = won
+    ? `Mistakes made: ${mistakes}`
+    : "The board has been revealed.";
+  document.getElementById("stat-played").textContent = played;
+  document.getElementById("stat-win").textContent = Math.round((wins / played) * 100);
+  document.getElementById("stat-streak").textContent = streak;
+  document.getElementById("stat-max").textContent = maxStreak;
+  document.getElementById("modal").style.display = "flex";
 }
 
-// Event listeners
 document.getElementById("shuffle-btn").addEventListener("click", shuffleTiles);
 document.getElementById("deselect-btn").addEventListener("click", deselectAll);
 document.getElementById("submit-btn").addEventListener("click", submitGuess);
-document.getElementById("next-btn").addEventListener("click", nextGame);
+document.getElementById("next-btn").addEventListener("click", initGame);
 document.getElementById("help-btn").addEventListener("click", () => {
-  alert("Connections:\n\nFind groups of 4 related items.\n\nYellow: Easiest\nGreen: Easy\nBlue: Hard\nPurple: Hardest\n\nYou have 4 mistakes allowed.");
+  alert("Find four groups of four related words. Select four words and submit. You have four mistakes.");
+});
+document.getElementById("stats-btn").addEventListener("click", () => {
+  const played = Number(localStorage.getItem("connections_played") || "0");
+  const wins = Number(localStorage.getItem("connections_wins") || "0");
+  document.getElementById("modal-title").textContent = "Statistics";
+  document.getElementById("modal-message").textContent = played ? "Your Connections Unlimited results." : "No games completed yet.";
+  document.getElementById("stat-played").textContent = played;
+  document.getElementById("stat-win").textContent = played ? Math.round((wins / played) * 100) : 0;
+  document.getElementById("stat-streak").textContent = localStorage.getItem("connections_streak") || "0";
+  document.getElementById("stat-max").textContent = localStorage.getItem("connections_max_streak") || "0";
+  document.getElementById("modal").style.display = "flex";
 });
 
-// Start the game
 initGame();
 </script>
 </body>
