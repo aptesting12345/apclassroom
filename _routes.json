@@ -1,0 +1,15 @@
+{
+  "version": 1,
+  "include": [
+    "/2048.html",
+    "/connections.html",
+    "/minesweeper.html",
+    "/snake.html",
+    "/sudoku.html",
+    "/tetris.html",
+    "/wordle.html",
+    "/games/v1.2.5/*",
+    "/games/JavaScript/*"
+  ],
+  "exclude": []
+}

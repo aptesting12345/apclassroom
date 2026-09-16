@@ -15,6 +15,7 @@
     <meta charset="utf-8">
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
     <title>Slope</title>
+    <script src="../../game-guard.js" data-home="../../index.html"></script>
     
     <link rel="stylesheet" href="TemplateData/style.css">
     <style>
@@ -25,16 +26,22 @@
         z-index: 20;
         width: 42px;
         height: 42px;
+        padding: 0;
         border-radius: 50%;
-        display: flex;
-        align-items: center;
-        justify-content: center;
+        display: grid;
+        place-items: center;
         color: #fff;
         background: rgba(0, 0, 0, 0.55);
         border: 1px solid rgba(255, 255, 255, 0.22);
         text-decoration: none;
+        line-height: 1;
         backdrop-filter: blur(8px);
         -webkit-backdrop-filter: blur(8px);
+      }
+      .back-link svg {
+        display: block;
+        width: 22px;
+        height: 22px;
       }
 
       .back-link:hover {
@@ -58,7 +65,7 @@
   )();
   </script></head>
   <body>
-    <a class="back-link" href="../../index.html" aria-label="Back to games" title="Back to games">
+    <a class="back-link" href="../../index.html" data-calculator-back aria-label="Back to calculator" title="Back to calculator">
       <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.25" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m15 18-6-6 6-6"/><path d="M21 12H9"/></svg>
     </a>
     <div id="unity-container" class="unity-desktop">

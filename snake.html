@@ -61,11 +61,13 @@ body {
 .icon-btn {
   width: 42px;
   height: 42px;
+  padding: 0;
   border: 1px solid var(--line);
   border-radius: 50%;
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
+  display: inline-grid;
+  place-items: center;
+  flex: 0 0 42px;
+  line-height: 1;
   color: var(--muted);
   background: var(--panel);
   box-shadow: 0 1px 2px rgba(60, 64, 67, 0.12);
@@ -74,6 +76,7 @@ body {
 }
 
 .icon-btn:hover { color: var(--ink); background: #f1f3f4; }
+.icon-btn svg { display: block; width: 22px; height: 22px; }
 
 .title {
   display: flex;
@@ -243,7 +246,7 @@ canvas {
 <div class="app">
   <header class="topbar">
     <div class="left">
-      <a class="icon-btn" href="index.html" aria-label="Back to games" title="Back to games">
+      <a class="icon-btn" href="index.html" data-calculator-back aria-label="Back to calculator" title="Back to calculator">
         <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.25" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m15 18-6-6 6-6"/><path d="M21 12H9"/></svg>
       </a>
       <div class="title"><span class="snake-mark" aria-hidden="true"></span><span>Snake</span></div>
@@ -276,6 +279,7 @@ canvas {
   <div class="hint">Arrow keys or WASD to move. Space pauses.</div>
 </div>
 
+<script src="game-guard.js"></script>
 <script>
 (() => {
   const canvas = document.getElementById("canvas");
@@ -289,7 +293,7 @@ canvas {
   const stage = document.getElementById("stage");
   const grid = 21;
   const cell = canvas.width / grid;
-  const moveMs = 112;
+  const moveMs = 96;
 
   let snake;
   let previousSnake;
@@ -430,7 +434,10 @@ canvas {
       step(now);
     }
 
-    const progress = state === "playing" ? Math.min((now - lastMove) / moveMs, 1) : 0;
+    const rawProgress = state === "playing" ? Math.min((now - lastMove) / moveMs, 1) : 0;
+    const progress = rawProgress < 0.5
+      ? 2 * rawProgress * rawProgress
+      : 1 - Math.pow(-2 * rawProgress + 2, 2) / 2;
     ctx.clearRect(0, 0, canvas.width, canvas.height);
 
     for (let y = 0; y < grid; y++) {
@@ -453,9 +460,9 @@ canvas {
 
     snake.forEach((part, index) => {
       const prev = previousSnake[index] || part;
-      const x = (prev.x + (part.x - prev.x) * progress) * cell + 3;
-      const y = (prev.y + (part.y - prev.y) * progress) * cell + 3;
-      const size = cell - 6;
+      const x = (prev.x + (part.x - prev.x) * progress) * cell + 2;
+      const y = (prev.y + (part.y - prev.y) * progress) * cell + 2;
+      const size = cell - 4;
       ctx.fillStyle = index === 0 ? "#1a73e8" : "#185abc";
       roundedRect(x, y, size, size, size * 0.35);
       ctx.fill();

@@ -85,15 +85,22 @@ h1 {
   gap: 14px;
 }
 .header-button {
+  width: 34px;
+  height: 34px;
   cursor: pointer;
   border: none;
+  border-radius: 50%;
   background: none;
   color: var(--header-color);
   padding: 0;
-  display: flex;
-  align-items: center;
+  display: inline-grid;
+  place-items: center;
+  flex: 0 0 34px;
+  line-height: 1;
+  text-decoration: none;
 }
 .header-button svg {
+  display: block;
   width: 24px;
   height: 24px;
 }
@@ -121,6 +128,7 @@ h1 {
   max-width: 350px;
   aspect-ratio: 1 / 1.2;
   max-height: 420px;
+  perspective: 900px;
 }
 .row {
   display: contents;
@@ -138,6 +146,8 @@ h1 {
   width: 100%;
   height: 100%;
   transition: transform 0.1s;
+  transform-style: preserve-3d;
+  backface-visibility: hidden;
   user-select: none;
 }
 .tile.filled {
@@ -150,11 +160,12 @@ h1 {
   100% { transform: scale(1); }
 }
 .tile.flip {
-  animation: flip 0.6s ease forwards;
+  animation: flip 0.62s ease-in-out both;
 }
 @keyframes flip {
   0% { transform: rotateX(0); }
-  50% { transform: rotateX(90deg); }
+  45% { transform: rotateX(90deg) scaleY(0.98); }
+  55% { transform: rotateX(90deg) scaleY(0.98); }
   100% { transform: rotateX(0); }
 }
 .tile.correct {
@@ -302,16 +313,16 @@ h1 {
 <div id="game">
   <div id="header">
     <div id="header-left">
-      <a class="header-button" href="index.html" aria-label="Back to games" title="Back to games">
+      <a class="header-button" href="index.html" data-calculator-back aria-label="Back to calculator" title="Back to calculator">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="m15 18-6-6 6-6"/><path d="M21 12H9"/></svg>
       </a>
-      <button class="header-button" id="help-btn" title="How to play">
+      <button class="header-button" id="help-btn" type="button" aria-label="How to play" title="How to play">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
       </button>
     </div>
     <h1>Wordle Unlimited</h1>
     <div id="header-right">
-      <button class="header-button" id="stats-btn" title="Statistics">
+      <button class="header-button" id="stats-btn" type="button" aria-label="Statistics" title="Statistics">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></svg>
       </button>
     </div>
@@ -342,6 +353,7 @@ h1 {
   </div>
 </div>
 
+<script src="game-guard.js"></script>
 <script>
 // ---- Word lists ----
 const ANSWER_WORDS = [
@@ -1773,6 +1785,8 @@ const VALID_GUESS_WORDS = Array.from(new Set(ANSWER_WORDS.concat(VALID_GUESS_WOR
     const tiles = getTiles(row);
     tiles.forEach((tile, i) => {
       setTimeout(() => {
+        tile.classList.remove("flip", "correct", "present", "absent");
+        void tile.offsetWidth;
         tile.classList.add("flip");
         setTimeout(() => {
           tile.classList.add(result[i]);
@@ -1804,9 +1818,11 @@ const VALID_GUESS_WORDS = Array.from(new Set(ANSWER_WORDS.concat(VALID_GUESS_WOR
     const delay = WORD_LENGTH * 300 + 400;
     if (win) {
       gameOver = true;
+      status = STATUSES.WIN;
       setTimeout(() => finishGame(true, delay), delay);
     } else if (done) {
       gameOver = true;
+      status = STATUSES.LOSE;
       setTimeout(() => finishGame(false, delay), delay);
     } else {
       currentGuess = "";

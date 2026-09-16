@@ -42,16 +42,19 @@ body {
 .icon-btn {
   width: 42px;
   height: 42px;
+  padding: 0;
   border: 1px solid var(--line);
   border-radius: 50%;
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
+  display: inline-grid;
+  place-items: center;
+  flex: 0 0 42px;
+  line-height: 1;
   color: var(--muted);
   background: var(--panel);
   text-decoration: none;
   cursor: pointer;
 }
+.icon-btn svg { display: block; width: 22px; height: 22px; }
 h1 { margin: 0; font-size: 30px; letter-spacing: 0; }
 .layout {
   display: grid;
@@ -148,7 +151,7 @@ button, select {
 <div class="app">
   <header class="topbar">
     <div class="left">
-      <a class="icon-btn" href="index.html" aria-label="Back to games" title="Back to games">
+      <a class="icon-btn" href="index.html" data-calculator-back aria-label="Back to calculator" title="Back to calculator">
         <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.25" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m15 18-6-6 6-6"/><path d="M21 12H9"/></svg>
       </a>
       <h1>Sudoku</h1>
@@ -180,6 +183,7 @@ button, select {
   </main>
 </div>
 
+<script src="game-guard.js"></script>
 <script>
 (() => {
   const base = [
