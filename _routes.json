@@ -3,6 +3,7 @@
   "include": [
     "/2048.html",
     "/connections.html",
+    "/crossword.html",
     "/minesweeper.html",
     "/snake.html",
     "/sudoku.html",

@@ -2,6 +2,7 @@ const PROTECTED_PAGES = new Set([
   "/wordle.html",
   "/snake.html",
   "/connections.html",
+  "/crossword.html",
   "/minesweeper.html",
   "/2048.html",
   "/tetris.html",

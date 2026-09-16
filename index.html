@@ -495,6 +495,11 @@
       document.cookie = 'calc_ready=1; Path=/; Max-Age=3600; SameSite=Lax';
     }
 
+    function hasGameAccess() {
+      return sessionStorage.getItem('gameAccess') === 'unlocked' ||
+        document.cookie.split(';').some(part => part.trim() === 'calc_ready=1');
+    }
+
     function clearGameAccess() {
       sessionStorage.removeItem('gameAccess');
       document.cookie = 'calc_ready=; Path=/; Max-Age=0; SameSite=Lax';
@@ -647,6 +652,7 @@
     });
 
     updateDisplay();
+    if (hasGameAccess()) openGames();
   </script>
 </body>
 </html>
