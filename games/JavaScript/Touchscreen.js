@@ -18,8 +18,6 @@ function startupConverter(canvas) {
     setInterval(() => {
         canvasLeftPos = canvas.getBoundingClientRect().left
     
-        //hide mobile warning button
-        document.querySelector("button")?.click()
     }, 100)
     
     let mainTouchId = null
