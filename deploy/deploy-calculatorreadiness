@@ -1,0 +1,48 @@
+#!/usr/bin/env bash
+set -Eeuo pipefail
+
+repo="/home/evanmholland/apclassroom"
+web_root="/var/www/calculatorreadiness"
+backup_root="/var/www/calculatorreadiness.previous"
+lock_file="/run/lock/calculatorreadiness-deploy.lock"
+
+exec 9>"$lock_file"
+flock -n 9 || exit 0
+
+git -C "$repo" fetch --quiet origin main
+current_commit="$(git -C "$repo" rev-parse HEAD)"
+remote_commit="$(git -C "$repo" rev-parse origin/main)"
+
+if [[ "$current_commit" == "$remote_commit" ]]; then
+  exit 0
+fi
+
+stage="$(mktemp -d /var/www/calculatorreadiness.deploy.XXXXXX)"
+cleanup() {
+  rm -rf "$stage"
+}
+trap cleanup EXIT
+
+git -C "$repo" archive origin/main | tar -x -C "$stage"
+
+test -s "$stage/index.html"
+test -s "$stage/game-guard.js"
+test -s "$stage/games/JavaScript/Touchscreen.js"
+if grep -Fq 'document.querySelector("button")?.click()' "$stage/games/JavaScript/Touchscreen.js"; then
+  echo "Refusing deployment: the Slope calculator-overlay bug is present." >&2
+  exit 1
+fi
+
+chmod -R a+rX "$stage"
+rm -rf "$backup_root"
+cp -a "$web_root" "$backup_root"
+rsync -a --delete --exclude='.git/' "$stage/" "$web_root/"
+
+if ! nginx -t; then
+  rsync -a --delete "$backup_root/" "$web_root/"
+  exit 1
+fi
+
+git -C "$repo" reset --hard "$remote_commit" >/dev/null
+systemctl reload nginx
+echo "Deployed $remote_commit"
