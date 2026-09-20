@@ -36,7 +36,7 @@ fi
 chmod -R a+rX "$stage"
 rm -rf "$backup_root"
 cp -a "$web_root" "$backup_root"
-rsync -a --delete --exclude='.git/' "$stage/" "$web_root/"
+rsync -a --delete --exclude='.git/' --exclude='deploy/' --exclude='functions/' --exclude='_routes.json' --exclude='CNAME' --exclude='README.md' "$stage/" "$web_root/"
 
 if ! nginx -t; then
   rsync -a --delete "$backup_root/" "$web_root/"
