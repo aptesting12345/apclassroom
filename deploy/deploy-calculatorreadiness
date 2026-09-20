@@ -9,9 +9,9 @@ lock_file="/run/lock/calculatorreadiness-deploy.lock"
 exec 9>"$lock_file"
 flock -n 9 || exit 0
 
-git -C "$repo" fetch --quiet origin main
-current_commit="$(git -C "$repo" rev-parse HEAD)"
-remote_commit="$(git -C "$repo" rev-parse origin/main)"
+git -c safe.directory="$repo" -C "$repo" fetch --quiet origin main
+current_commit="$(git -c safe.directory="$repo" -C "$repo" rev-parse HEAD)"
+remote_commit="$(git -c safe.directory="$repo" -C "$repo" rev-parse origin/main)"
 
 if [[ "$current_commit" == "$remote_commit" ]]; then
   exit 0
@@ -23,7 +23,7 @@ cleanup() {
 }
 trap cleanup EXIT
 
-git -C "$repo" archive origin/main | tar -x -C "$stage"
+git -c safe.directory="$repo" -C "$repo" archive origin/main | tar -x -C "$stage"
 
 test -s "$stage/index.html"
 test -s "$stage/game-guard.js"
@@ -43,6 +43,6 @@ if ! nginx -t; then
   exit 1
 fi
 
-git -C "$repo" reset --hard "$remote_commit" >/dev/null
+git -c safe.directory="$repo" -C "$repo" reset --hard "$remote_commit" >/dev/null
 systemctl reload nginx
 echo "Deployed $remote_commit"
