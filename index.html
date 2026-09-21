@@ -12,7 +12,11 @@
   <header class="site-header">
     <nav class="nav" aria-label="Main navigation">
       <a class="brand" href="#top" aria-label="Calculator Readiness home"><span class="brand-mark" aria-hidden="true">∑</span><span>Calculator Readiness</span></a>
-      <div class="nav-links"><a href="#calculator">Calculator</a><a href="#tools">All tools</a><a href="#about">About</a><a class="nav-cta" href="#tools">Explore calculators</a></div>
+      <div class="nav-links">
+        <div class="nav-group"><button type="button" aria-haspopup="true">Calculators <span>⌄</span></button><div class="nav-menu"><a href="#calculator">Scientific calculator</a><a href="#tools">All calculators</a><a href="calculators/finance.html">Finance</a><a href="calculators/everyday.html">Everyday math</a></div></div>
+        <div class="nav-group"><button type="button" aria-haspopup="true">Resources <span>⌄</span></button><div class="nav-menu"><a href="calculators/conversions.html">Conversions</a><a href="calculators/planning.html">Planning</a><a href="guides/">Guides</a></div></div>
+        <a href="#about">About</a><a class="nav-cta" href="#tools">Explore calculators</a>
+      </div>
     </nav>
   </header>
 
@@ -75,22 +79,6 @@
 
     <section class="section alt" id="about"><div class="container"><div class="section-head"><div class="section-label">Built to be useful</div><h2>Less friction. More clarity.</h2><p>Calculator Readiness keeps the experience simple, transparent, and available whenever you need a reliable estimate.</p></div><div class="why-grid"><div class="why-item"><span class="why-number">01</span><h3>Fast by default</h3><p>No accounts, downloads, or unnecessary steps. Pick a tool, enter your numbers, and get a clear result.</p></div><div class="why-item"><span class="why-number">02</span><h3>Your data stays yours</h3><p>Calculations run locally in your browser. The values you enter are not sent away for processing.</p></div><div class="why-item"><span class="why-number">03</span><h3>Made for real life</h3><p>From comparing loan costs to splitting dinner, every tool is designed around a practical question.</p></div></div></div></section>
 
-    <section id="gamesView" class="games-view" aria-label="Game dashboard">
-      <div class="games-shell">
-        <header class="games-header"><div><div class="section-label">Developer access</div><h2>Game library</h2><p>Choose a game and play right in the browser.</p></div><button id="lockButton" class="lock-button" type="button">Back to calculators</button></header>
-        <div class="game-grid">
-          <a class="game-card wordle" href="wordle.html"><span class="game-icon">W</span><div><h3>Wordle Unlimited</h3><p>Guess the hidden five-letter word.</p></div></a>
-          <a class="game-card snake" href="snake.html"><span class="game-icon">S</span><div><h3>Snake</h3><p>Smooth classic arcade controls.</p></div></a>
-          <a class="game-card connections" href="connections.html"><span class="game-icon">C</span><div><h3>Connections</h3><p>Find four related word groups.</p></div></a>
-          <a class="game-card slope" href="games/v1.2.5/index.html"><span class="game-icon">↘</span><div><h3>Slope</h3><p>Roll fast and dodge hazards.</p></div></a>
-          <a class="game-card minesweeper" href="minesweeper.html"><span class="game-icon">✹</span><div><h3>Minesweeper</h3><p>Clear the board safely.</p></div></a>
-          <a class="game-card game2048" href="2048.html"><span class="game-icon">2</span><div><h3>2048</h3><p>Merge tiles across four themes.</p></div></a>
-          <a class="game-card tetris" href="tetris.html"><span class="game-icon">T</span><div><h3>Tetris</h3><p>Stack blocks and clear lines.</p></div></a>
-          <a class="game-card sudoku" href="sudoku.html"><span class="game-icon">9</span><div><h3>Sudoku</h3><p>Generated puzzles with notes.</p></div></a>
-          <a class="game-card crossword" href="crossword.html"><span class="game-icon">+</span><div><h3>Crossword</h3><p>Fill clues and solve the grid.</p></div></a>
-        </div>
-      </div>
-    </section>
   </main>
   <footer><div class="footer-inner"><span class="footer-brand">Calculator Readiness</span><span>© <span id="year"></span> · Free tools for everyday calculations</span></div></footer>
   <div class="toast" id="toast" role="status"></div>

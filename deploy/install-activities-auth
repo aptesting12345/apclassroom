@@ -1,0 +1,43 @@
+#!/usr/bin/env bash
+set -Eeuo pipefail
+
+if [[ "${EUID}" -ne 0 ]]; then
+  echo "Run this installer with sudo." >&2
+  exit 1
+fi
+if [[ "$#" -ne 1 || -z "$1" ]]; then
+  echo "Usage: sudo ./deploy/install-activities-auth ACCESS_CODE" >&2
+  exit 1
+fi
+
+repo="$(cd "$(dirname "$0")/.." && pwd)"
+install -d -m 0755 /opt/calculatorreadiness /etc/calculatorreadiness
+install -m 0644 "$repo/server/activity-auth.mjs" /opt/calculatorreadiness/activity-auth.mjs
+install -m 0644 "$repo/deploy/calculatorreadiness-activity-auth.service" /etc/systemd/system/calculatorreadiness-activity-auth.service
+install -m 0644 "$repo/deploy/nginx-activities.conf" /etc/nginx/snippets/calculatorreadiness-activities.conf
+
+secret="$(openssl rand -hex 32)"
+umask 077
+printf 'ACTIVITIES_ACCESS_CODE=%s\nACTIVITIES_SESSION_SECRET=%s\n' "$1" "$secret" > /etc/calculatorreadiness/activity-auth.env
+
+systemctl daemon-reload
+systemctl enable --now calculatorreadiness-activity-auth.service
+
+if ! nginx -T 2>&1 | grep -Fq 'location ^~ /activities/'; then
+  cat <<'MESSAGE'
+
+Authentication is running, but Nginx is not protecting /activities/ yet.
+Add this line inside the calculatorreadiness.com server block:
+
+    include /etc/nginx/snippets/calculatorreadiness-activities.conf;
+
+Then run this installer again. The site deployment remains safely blocked until that is done.
+MESSAGE
+  exit 2
+fi
+
+nginx -t
+install -m 0755 "$repo/deploy/deploy-calculatorreadiness" /usr/local/sbin/deploy-calculatorreadiness
+systemctl reload nginx
+systemctl start calculatorreadiness-deploy.service
+echo "Activity authentication and protected deployment are ready."

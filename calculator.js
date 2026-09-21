@@ -3,7 +3,8 @@ const money=new Intl.NumberFormat('en-US',{style:'currency',currency:'USD',maxim
 const number=new Intl.NumberFormat('en-US',{maximumFractionDigits:4});
 const expression=$('#expression'), result=$('#result');
 let angleMode='deg', memory=Number(localStorage.getItem('cr-memory')||0), lastResult=0;
-const devMode=$('#devMode'), gamesView=$('#gamesView'), lockButton=$('#lockButton');
+const devMode=$('#devMode');
+let unlockPending=false;
 
 function normalizeExpression(raw){
   let value=raw.trim().replaceAll('×','*').replaceAll('÷','/').replaceAll('−','-').replaceAll('π','PI').replaceAll('√','sqrt');
@@ -60,12 +61,18 @@ $$('.filter-btn').forEach(btn=>btn.addEventListener('click',()=>{$$('.filter-btn
 function showToast(message){const toast=$('#toast');toast.textContent=message;toast.classList.add('show');clearTimeout(showToast.timer);showToast.timer=setTimeout(()=>toast.classList.remove('show'),1800)}
 $('#year').textContent=new Date().getFullYear();
 
-function grantGameAccess(){sessionStorage.setItem('gameAccess','unlocked');document.cookie='calc_ready=1; Path=/; Max-Age=3600; SameSite=Lax'}
-function hasGameAccess(){return sessionStorage.getItem('gameAccess')==='unlocked'||document.cookie.split(';').some(part=>part.trim()==='calc_ready=1')}
-function clearGameAccess(){sessionStorage.removeItem('gameAccess');document.cookie='calc_ready=; Path=/; Max-Age=0; SameSite=Lax'}
-function checkDeveloperCode(){if(devMode.checked&&expression.value.replace(/\s/g,'').endsWith('0000'))openGames()}
-function openGames(){grantGameAccess();document.body.classList.add('body-game-open');gamesView.classList.add('unlocked');expression.value='';result.textContent='0';window.scrollTo({top:0,behavior:'smooth'})}
-function closeGames(){clearGameAccess();gamesView.classList.remove('unlocked');document.body.classList.remove('body-game-open');devMode.checked=false;expression.value='';result.textContent='0';window.scrollTo({top:0,behavior:'smooth'})}
+async function checkDeveloperCode(){
+  const compact=expression.value.replace(/\s/g,'');
+  if(!devMode.checked||!compact.endsWith('0000')||unlockPending)return;
+  unlockPending=true;
+  try{
+    const response=await fetch('/api/activity-session',{method:'POST',credentials:'same-origin',headers:{'Content-Type':'application/json'},body:JSON.stringify({code:compact.slice(-4)})});
+    expression.value='';result.textContent='0';
+    if(!response.ok){showToast(response.status===429?'Try again in a few minutes':'Access code not accepted');return}
+    window.location.assign('/activities/');
+  }catch(error){expression.value='';result.textContent='0';showToast('Access service unavailable')}
+  finally{unlockPending=false}
+}
 devMode.addEventListener('change',()=>{if(devMode.checked)showToast('Developer mode ready');else showToast('Developer mode off')});
-lockButton.addEventListener('click',closeGames);
-if(hasGameAccess())openGames();
+const requestedTool=new URLSearchParams(window.location.search).get('tool');
+if(requestedTool&&toolDefinitions[requestedTool])openTool(requestedTool);

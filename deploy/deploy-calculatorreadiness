@@ -27,8 +27,17 @@ git -c safe.directory="$repo" -C "$repo" archive origin/main | tar -x -C "$stage
 
 test -s "$stage/index.html"
 test -s "$stage/game-guard.js"
-test -s "$stage/games/JavaScript/Touchscreen.js"
-if grep -Fq 'document.querySelector("button")?.click()' "$stage/games/JavaScript/Touchscreen.js"; then
+test -s "$stage/activities/index.html"
+test -s "$stage/activities/4/JavaScript/Touchscreen.js"
+if ! systemctl is-active --quiet calculatorreadiness-activity-auth.service; then
+  echo "Refusing deployment: activity authentication is not active." >&2
+  exit 1
+fi
+if ! nginx -T 2>&1 | grep -Fq 'location ^~ /activities/'; then
+  echo "Refusing deployment: the protected /activities/ Nginx location is not loaded." >&2
+  exit 1
+fi
+if grep -Fq 'document.querySelector("button")?.click()' "$stage/activities/4/JavaScript/Touchscreen.js"; then
   echo "Refusing deployment: the Slope calculator-overlay bug is present." >&2
   exit 1
 fi
@@ -36,7 +45,10 @@ fi
 chmod -R a+rX "$stage"
 rm -rf "$backup_root"
 cp -a "$web_root" "$backup_root"
-rsync -a --delete --exclude='.git/' --exclude='deploy/' --exclude='functions/' --exclude='_routes.json' --exclude='CNAME' --exclude='README.md' "$stage/" "$web_root/"
+install -d -m 0755 /opt/calculatorreadiness
+install -m 0644 "$stage/server/activity-auth.mjs" /opt/calculatorreadiness/activity-auth.mjs
+systemctl restart calculatorreadiness-activity-auth.service
+rsync -a --delete --exclude='.git/' --exclude='deploy/' --exclude='server/' --exclude='functions/' --exclude='_routes.json' --exclude='CNAME' --exclude='README.md' "$stage/" "$web_root/"
 
 if ! nginx -t; then
   rsync -a --delete "$backup_root/" "$web_root/"
