@@ -206,13 +206,18 @@ select, .mode-btn {
     return list;
   }
 
-  function startTimer() {
-    if (started) return;
-    started = true;
+  function runTimer() {
+    clearInterval(timer);
     timer = setInterval(() => {
       seconds += 1;
       timeEl.textContent = pad(seconds);
     }, 1000);
+  }
+
+  function startTimer() {
+    if (started) return;
+    started = true;
+    runTimer();
   }
 
   function plantMines(safeIndex) {
@@ -350,6 +355,16 @@ select, .mode-btn {
   face.addEventListener("click", newGame);
   digMode.addEventListener("click", () => { flagModeOn = false; updateModes(); });
   flagMode.addEventListener("click", () => { flagModeOn = true; updateModes(); });
+  let calculatorPausedTimer = false;
+  window.addEventListener("gamecalculatorchange", event => {
+    if (event.detail.open) {
+      calculatorPausedTimer = started && !ended;
+      if (calculatorPausedTimer) clearInterval(timer);
+    } else if (calculatorPausedTimer) {
+      calculatorPausedTimer = false;
+      runTimer();
+    }
+  });
   newGame();
 })();
 </script>

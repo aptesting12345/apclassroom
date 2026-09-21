@@ -125,6 +125,12 @@
       }
       loadingBar.style.display = "block";
 	  var myGameInstance = null;
+      window.addEventListener("gamecalculatorchange", (event) => {
+        const mainLoop = myGameInstance && myGameInstance.Module;
+        if (!mainLoop) return;
+        if (event.detail.open && typeof mainLoop.pauseMainLoop === "function") mainLoop.pauseMainLoop();
+        if (!event.detail.open && typeof mainLoop.resumeMainLoop === "function") mainLoop.resumeMainLoop();
+      });
       var script = document.createElement("script");
       script.src = loaderUrl;
       script.onload = () => {

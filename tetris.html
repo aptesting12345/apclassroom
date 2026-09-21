@@ -369,6 +369,20 @@ button {
     if (action === "rotate") rotate();
     if (action === "drop") softDrop();
   });
+  let calculatorPreviousState = null;
+  window.addEventListener("gamecalculatorchange", event => {
+    if (event.detail.open) {
+      calculatorPreviousState = state;
+      if (state === "playing") { state = "paused"; draw(); }
+    } else if (calculatorPreviousState === "playing") {
+      calculatorPreviousState = null;
+      state = "playing";
+      last = performance.now();
+      draw();
+    } else {
+      calculatorPreviousState = null;
+    }
+  });
   document.getElementById("start").addEventListener("click", reset);
   reset();
   requestAnimationFrame(loop);

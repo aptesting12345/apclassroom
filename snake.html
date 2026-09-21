@@ -529,6 +529,17 @@ canvas {
     else start();
   });
 
+  let calculatorPausedRun = false;
+  window.addEventListener("gamecalculatorchange", event => {
+    if (event.detail.open) {
+      calculatorPausedRun = state === "playing";
+      if (calculatorPausedRun) pause();
+    } else if (calculatorPausedRun) {
+      calculatorPausedRun = false;
+      resume();
+    }
+  });
+
   reset();
   cancelAnimationFrame(raf);
   raf = requestAnimationFrame(draw);
