@@ -1,658 +1,99 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Calculator Readiness</title>
-  <style>
-    :root {
-      --bg: #edf2f7;
-      --ink: #172033;
-      --muted: #667085;
-      --panel: #ffffff;
-      --line: #d7dee8;
-      --screen: #111827;
-      --screen-ink: #e5eefb;
-      --key: #f7fafc;
-      --key-dark: #dfe7f1;
-      --accent: #2563eb;
-      --accent-dark: #1d4ed8;
-      --green: #16a34a;
-      --yellow: #f59e0b;
-      --purple: #7c3aed;
-      --red: #dc2626;
-      --teal: #0d9488;
-      --shadow: 0 22px 60px rgba(15, 23, 42, 0.16);
-    }
-
-    * { box-sizing: border-box; }
-
-    body {
-      margin: 0;
-      min-height: 100dvh;
-      display: grid;
-      place-items: center;
-      padding: 32px 16px;
-      font-family: Arial, Helvetica, sans-serif;
-      color: var(--ink);
-      background:
-        radial-gradient(circle at 15% 12%, rgba(37, 99, 235, 0.15), transparent 32%),
-        radial-gradient(circle at 85% 18%, rgba(13, 148, 136, 0.13), transparent 30%),
-        linear-gradient(180deg, #f8fafc, var(--bg));
-      -webkit-font-smoothing: antialiased;
-    }
-
-    main {
-      width: min(100%, 1060px);
-    }
-
-    .calculator-wrap {
-      width: min(100%, 430px);
-      margin: 0 auto;
-    }
-
-    .calculator {
-      padding: 22px;
-      border: 1px solid rgba(15, 23, 42, 0.1);
-      border-radius: 28px;
-      background: linear-gradient(180deg, #ffffff, #eef4fb);
-      box-shadow: var(--shadow);
-    }
-
-    .topbar {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      gap: 16px;
-      margin-bottom: 18px;
-    }
-
-    h1 {
-      margin: 0;
-      font-size: 24px;
-      line-height: 1;
-      letter-spacing: 0;
-    }
-
-    .dev-toggle {
-      display: inline-flex;
-      align-items: center;
-      gap: 9px;
-      color: var(--muted);
-      font-size: 13px;
-      font-weight: 700;
-      white-space: nowrap;
-      cursor: pointer;
-      user-select: none;
-    }
-
-    .dev-toggle input {
-      position: absolute;
-      opacity: 0;
-      pointer-events: none;
-    }
-
-    .switch {
-      width: 44px;
-      height: 24px;
-      border-radius: 999px;
-      padding: 3px;
-      background: #cbd5e1;
-      transition: background 160ms ease;
-    }
-
-    .switch::before {
-      content: "";
-      display: block;
-      width: 18px;
-      height: 18px;
-      border-radius: 50%;
-      background: #ffffff;
-      box-shadow: 0 2px 5px rgba(15, 23, 42, 0.22);
-      transition: transform 160ms ease;
-    }
-
-    .dev-toggle input:checked + .switch {
-      background: var(--accent);
-    }
-
-    .dev-toggle input:checked + .switch::before {
-      transform: translateX(20px);
-    }
-
-    .display {
-      min-height: 104px;
-      border-radius: 20px;
-      padding: 16px;
-      margin-bottom: 16px;
-      background: linear-gradient(180deg, #182033, var(--screen));
-      color: var(--screen-ink);
-      display: grid;
-      align-content: end;
-      gap: 8px;
-      overflow: hidden;
-    }
-
-    .history {
-      min-height: 18px;
-      color: rgba(229, 238, 251, 0.62);
-      font-size: 14px;
-      text-align: right;
-      white-space: nowrap;
-      overflow: hidden;
-      text-overflow: ellipsis;
-    }
-
-    .readout {
-      font-size: clamp(34px, 10vw, 48px);
-      line-height: 1;
-      font-weight: 800;
-      letter-spacing: 0;
-      text-align: right;
-      white-space: nowrap;
-      overflow: hidden;
-      text-overflow: ellipsis;
-    }
-
-    .keys {
-      display: grid;
-      grid-template-columns: repeat(4, 1fr);
-      gap: 10px;
-    }
-
-    button {
-      font: inherit;
-    }
-
-    .key {
-      min-height: 58px;
-      border: 0;
-      border-radius: 18px;
-      background: var(--key);
-      color: var(--ink);
-      font-size: 21px;
-      font-weight: 800;
-      box-shadow: inset 0 -2px 0 rgba(15, 23, 42, 0.06), 0 1px 2px rgba(15, 23, 42, 0.08);
-      cursor: pointer;
-      transition: transform 120ms ease, background 120ms ease;
-    }
-
-    .key:hover { background: #ffffff; }
-    .key:active { transform: translateY(1px); }
-
-    .key.utility {
-      background: var(--key-dark);
-      color: #334155;
-    }
-
-    .key.operator,
-    .key.equals {
-      background: var(--accent);
-      color: #ffffff;
-    }
-
-    .key.operator:hover,
-    .key.equals:hover {
-      background: var(--accent-dark);
-    }
-
-    .key.zero {
-      grid-column: span 2;
-    }
-
-    .status-line {
-      min-height: 18px;
-      margin-top: 14px;
-      color: var(--muted);
-      font-size: 13px;
-      text-align: center;
-    }
-
-    .games-view {
-      display: none;
-      animation: rise 260ms ease both;
-    }
-
-    .games-view.unlocked {
-      display: block;
-    }
-
-    @keyframes rise {
-      from { opacity: 0; transform: translateY(10px); }
-      to { opacity: 1; transform: translateY(0); }
-    }
-
-    .games-shell {
-      width: min(100%, 980px);
-      margin: 0 auto;
-    }
-
-    .games-header {
-      margin-bottom: 26px;
-      display: flex;
-      align-items: end;
-      justify-content: space-between;
-      gap: 18px;
-    }
-
-    .games-header h2 {
-      margin: 0;
-      font-size: clamp(34px, 7vw, 58px);
-      line-height: 0.95;
-      letter-spacing: 0;
-    }
-
-    .games-header p {
-      margin: 9px 0 0;
-      color: var(--muted);
-      font-size: 17px;
-      line-height: 1.4;
-    }
-
-    .lock-button {
-      min-height: 44px;
-      border: 1px solid var(--line);
-      border-radius: 14px;
-      padding: 0 16px;
-      background: #ffffff;
-      color: #334155;
-      font-weight: 800;
-      cursor: pointer;
-      box-shadow: 0 1px 2px rgba(15, 23, 42, 0.06);
-    }
-
-    .count {
-      min-width: 108px;
-      padding: 12px 16px;
-      border: 1px solid var(--line);
-      border-radius: 18px;
-      background: rgba(255, 255, 255, 0.74);
-      text-align: center;
-      box-shadow: 0 1px 2px rgba(15, 23, 42, 0.06);
-    }
-
-    .count strong {
-      display: block;
-      font-size: 26px;
-    }
-
-    .count span {
-      color: var(--muted);
-      font-size: 12px;
-      font-weight: 800;
-      text-transform: uppercase;
-    }
-
-    .grid {
-      display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
-      gap: 16px;
-    }
-
-    .card {
-      min-height: 156px;
-      padding: 18px;
-      border: 1px solid var(--line);
-      border-radius: 18px;
-      display: flex;
-      flex-direction: column;
-      justify-content: space-between;
-      color: var(--ink);
-      background: var(--panel);
-      box-shadow: var(--shadow);
-      text-decoration: none;
-      transition: transform 160ms ease, box-shadow 160ms ease;
-    }
-
-    .card:hover {
-      transform: translateY(-3px);
-      box-shadow: 0 20px 52px rgba(15, 23, 42, 0.16);
-    }
-
-    .icon {
-      width: 44px;
-      height: 44px;
-      border-radius: 14px;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      color: #fff;
-      font-size: 23px;
-      font-weight: 900;
-    }
-
-    .card h3 {
-      margin: 18px 0 5px;
-      font-size: 23px;
-      line-height: 1.1;
-      letter-spacing: 0;
-    }
-
-    .card p {
-      margin: 0;
-      color: var(--muted);
-      font-size: 14px;
-      line-height: 1.4;
-    }
-
-    .wordle .icon { background: var(--green); }
-    .snake .icon { background: var(--green); }
-    .connections .icon { background: var(--purple); }
-    .slope .icon { background: var(--accent); }
-    .minesweeper .icon { background: var(--yellow); }
-    .game2048 .icon { background: var(--red); }
-    .tetris .icon { background: var(--teal); }
-    .sudoku .icon { background: #475569; }
-    .crossword .icon { background: #7c3aed; }
-
-    @media (max-width: 620px) {
-      body { padding: 24px 14px; }
-      .calculator { padding: 18px; border-radius: 24px; }
-      .topbar { align-items: flex-start; flex-direction: column; }
-      .key { min-height: 54px; border-radius: 15px; }
-      .games-header { align-items: flex-start; flex-direction: column; }
-      .count { text-align: left; }
-      .card { min-height: 138px; border-radius: 14px; }
-    }
-  </style>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="Free everyday calculators for math, interest, loans, savings, percentages, health, dates, and unit conversions.">
+  <meta name="theme-color" content="#0b1220">
+  <title>Calculator Readiness — Smart Calculators for Everyday Decisions</title>
+  <link rel="stylesheet" href="calculator.css">
 </head>
 <body>
-  <main>
-    <section id="calculatorView" class="calculator-wrap" aria-label="Calculator">
-      <div class="calculator">
-        <div class="topbar">
-          <h1>Calculator Readiness</h1>
-          <label class="dev-toggle">
-            <input id="devMode" type="checkbox" />
-            <span class="switch" aria-hidden="true"></span>
-            <span>Enable dev mode</span>
-          </label>
+  <header class="site-header">
+    <nav class="nav" aria-label="Main navigation">
+      <a class="brand" href="#top" aria-label="Calculator Readiness home"><span class="brand-mark" aria-hidden="true">∑</span><span>Calculator Readiness</span></a>
+      <div class="nav-links"><a href="#calculator">Calculator</a><a href="#tools">All tools</a><a href="#about">About</a><a class="nav-cta" href="#tools">Explore calculators</a></div>
+    </nav>
+  </header>
+
+  <main id="top">
+    <section class="hero" id="calculator">
+      <div class="hero-inner">
+        <div class="hero-copy">
+          <div class="eyebrow">Clear answers, right away</div>
+          <h1>Calculate with confidence.</h1>
+          <p>From quick arithmetic to financial planning, get accurate results in a clean, focused workspace built for everyday decisions.</p>
+          <div class="trust-row" aria-label="Calculator benefits">
+            <span>✓ No sign-up</span><span>✓ Works on any device</span><span>✓ Private by design</span>
+          </div>
         </div>
-
-        <div class="display" aria-live="polite">
-          <div id="history" class="history"></div>
-          <div id="readout" class="readout">0</div>
+        <div class="calculator-shell" aria-label="Scientific calculator">
+          <div class="calc-topbar">
+            <span>Scientific calculator</span>
+            <div class="calc-top-actions">
+              <label class="dev-toggle"><input id="devMode" type="checkbox"><span class="switch" aria-hidden="true"></span><span>Developer mode</span></label>
+              <span class="calc-status"><i></i> Ready</span>
+            </div>
+          </div>
+          <div class="calc-body">
+            <div class="display"><input id="expression" class="expression" inputmode="text" autocomplete="off" spellcheck="false" aria-label="Calculator expression" placeholder="Enter a calculation"><div id="result" class="result" aria-live="polite">0</div></div>
+            <div class="calc-meta"><span id="memoryLabel">Memory: 0</span><div class="mode-toggle" aria-label="Angle mode"><button type="button" id="degMode" class="active">DEG</button><button type="button" id="radMode">RAD</button></div></div>
+            <div class="keypad" id="keypad">
+              <button class="key utility" data-action="clear">AC</button><button class="key utility" data-action="delete">DEL</button><button class="key function" data-value="(">(</button><button class="key function" data-value=")">)</button><button class="key function" data-value="%">%</button><button class="key operator" data-value="÷">÷</button>
+              <button class="key function" data-value="sin(">sin</button><button class="key function" data-value="cos(">cos</button><button class="key function" data-value="tan(">tan</button><button class="key function" data-value="√(">√</button><button class="key function" data-value="^">xʸ</button><button class="key operator" data-value="×">×</button>
+              <button class="key function" data-value="ln(">ln</button><button class="key function" data-value="log(">log</button><button class="key function" data-value="π">π</button><button class="key" data-value="7">7</button><button class="key" data-value="8">8</button><button class="key" data-value="9">9</button>
+              <button class="key function" data-action="square">x²</button><button class="key function" data-action="memory-add">M+</button><button class="key function" data-action="memory-recall">MR</button><button class="key" data-value="4">4</button><button class="key" data-value="5">5</button><button class="key" data-value="6">6</button>
+              <button class="key operator" data-value="−">−</button><button class="key function" data-value="E">e</button><button class="key" data-value="1">1</button><button class="key" data-value="2">2</button><button class="key" data-value="3">3</button><button class="key operator" data-value="+">+</button>
+              <button class="key function" data-action="last-result">ANS</button><button class="key function" data-action="sign">±</button><button class="key zero-wide" data-value="0">0</button><button class="key" data-value=".">.</button><button class="key equals" data-action="equals">=</button>
+            </div>
+          </div>
         </div>
-
-        <div class="keys" aria-label="Calculator keypad">
-          <button class="key utility" type="button" data-action="clear">AC</button>
-          <button class="key utility" type="button" data-action="backspace">DEL</button>
-          <button class="key utility" type="button" data-action="percent">%</button>
-          <button class="key operator" type="button" data-operator="/">&divide;</button>
-
-          <button class="key" type="button" data-digit="7">7</button>
-          <button class="key" type="button" data-digit="8">8</button>
-          <button class="key" type="button" data-digit="9">9</button>
-          <button class="key operator" type="button" data-operator="*">&times;</button>
-
-          <button class="key" type="button" data-digit="4">4</button>
-          <button class="key" type="button" data-digit="5">5</button>
-          <button class="key" type="button" data-digit="6">6</button>
-          <button class="key operator" type="button" data-operator="-">-</button>
-
-          <button class="key" type="button" data-digit="1">1</button>
-          <button class="key" type="button" data-digit="2">2</button>
-          <button class="key" type="button" data-digit="3">3</button>
-          <button class="key operator" type="button" data-operator="+">+</button>
-
-          <button class="key zero" type="button" data-digit="0">0</button>
-          <button class="key" type="button" data-action="decimal">.</button>
-          <button class="key equals" type="button" data-action="equals">=</button>
-        </div>
-
-        <div id="statusLine" class="status-line">Ready</div>
       </div>
     </section>
 
-    <section id="gamesView" class="games-view" aria-label="Game dashboard">
-      <div class="games-shell">
-        <header class="games-header">
-          <div>
-            <h2>My HTML Games</h2>
-            <p>Pick a game and play right in the browser.</p>
-          </div>
-          <div class="count"><strong>9</strong><span>Games</span></div>
-          <button id="lockButton" class="lock-button" type="button">Back to calculator</button>
-        </header>
-
-        <section class="grid" aria-label="Game menu">
-          <a class="card wordle" href="wordle.html">
-            <div><div class="icon">W</div><h3>Wordle Unlimited</h3><p>Guess the hidden five-letter word.</p></div>
-          </a>
-          <a class="card snake" href="snake.html">
-            <div><div class="icon">S</div><h3>Snake</h3><p>Smooth classic snake with clean arcade controls.</p></div>
-          </a>
-          <a class="card connections" href="connections.html">
-            <div><div class="icon">C</div><h3>Connections Unlimited</h3><p>Find four clever groups of related words.</p></div>
-          </a>
-          <a class="card slope" href="games/v1.2.5/index.html">
-            <div><div class="icon">/</div><h3>Slope</h3><p>Roll fast, dodge hazards, and stay on the track.</p></div>
-          </a>
-          <a class="card minesweeper" href="minesweeper.html">
-            <div><div class="icon">*</div><h3>Minesweeper</h3><p>Clear the board without hitting a mine.</p></div>
-          </a>
-          <a class="card game2048" href="2048.html">
-            <div><div class="icon">2</div><h3>2048</h3><p>Merge tiles across four visual themes.</p></div>
-          </a>
-          <a class="card tetris" href="tetris.html">
-            <div><div class="icon">T</div><h3>Tetris</h3><p>Stack blocks, clear lines, and raise the level.</p></div>
-          </a>
-          <a class="card sudoku" href="sudoku.html">
-            <div><div class="icon">9</div><h3>Sudoku</h3><p>Play generated puzzles with notes and hints.</p></div>
-          </a>
-          <a class="card crossword" href="crossword.html">
-            <div><div class="icon">+</div><h3>Crossword</h3><p>Fill in clues, track progress, and solve the grid.</p></div>
-          </a>
+    <section class="section" id="tools">
+      <div class="container">
+        <div class="section-head"><div class="section-label">Calculator library</div><h2>One place for the numbers that matter.</h2><p>Choose a focused tool for finance, everyday math, health, time, or measurement. Every calculation happens right in your browser.</p></div>
+        <div class="tool-filter" role="group" aria-label="Filter calculator tools"><button class="filter-btn active" data-filter="all">All tools</button><button class="filter-btn" data-filter="finance">Finance</button><button class="filter-btn" data-filter="everyday">Everyday math</button><button class="filter-btn" data-filter="planning">Planning</button></div>
+        <div class="tools-grid">
+          <article class="tool-card" data-category="finance"><div class="tool-icon">↗</div><h3>Compound interest</h3><p>See how an investment can grow with recurring contributions and compounding.</p><button class="open-tool" data-tool="compound">Open calculator <span>→</span></button></article>
+          <article class="tool-card" data-category="finance"><div class="tool-icon green">$</div><h3>Simple interest</h3><p>Calculate interest earned or owed when the rate applies only to the principal.</p><button class="open-tool" data-tool="simple">Open calculator <span>→</span></button></article>
+          <article class="tool-card" data-category="finance"><div class="tool-icon amber">⌂</div><h3>Loan &amp; mortgage</h3><p>Estimate monthly payments, total interest, and the full cost of a fixed-rate loan.</p><button class="open-tool" data-tool="loan">Open calculator <span>→</span></button></article>
+          <article class="tool-card" data-category="planning finance"><div class="tool-icon green">◎</div><h3>Savings goal</h3><p>Find the monthly deposit needed to reach a target by your chosen date.</p><button class="open-tool" data-tool="savings">Open calculator <span>→</span></button></article>
+          <article class="tool-card" data-category="everyday"><div class="tool-icon">%</div><h3>Percentage</h3><p>Find a percentage of a number, percentage change, or what percent one value is of another.</p><button class="open-tool" data-tool="percent">Open calculator <span>→</span></button></article>
+          <article class="tool-card" data-category="everyday planning"><div class="tool-icon amber">÷</div><h3>Tip &amp; split</h3><p>Calculate a tip, the total bill, and each person’s share in seconds.</p><button class="open-tool" data-tool="tip">Open calculator <span>→</span></button></article>
+          <article class="tool-card" data-category="planning"><div class="tool-icon">□</div><h3>Date difference</h3><p>Count the exact days and weeks between any two calendar dates.</p><button class="open-tool" data-tool="date">Open calculator <span>→</span></button></article>
+          <article class="tool-card" data-category="everyday"><div class="tool-icon green">⇄</div><h3>Unit converter</h3><p>Convert length, weight, temperature, area, volume, and speed.</p><button class="open-tool" data-tool="convert">Open calculator <span>→</span></button></article>
+          <article class="tool-card" data-category="everyday planning"><div class="tool-icon amber">△</div><h3>BMI</h3><p>Estimate body mass index with metric or US measurements and view the standard range.</p><button class="open-tool" data-tool="bmi">Open calculator <span>→</span></button></article>
+        </div>
+        <section class="tool-panel" id="toolPanel" hidden aria-live="polite">
+          <div class="panel-head"><div class="panel-title"><div class="tool-icon" id="panelIcon">%</div><div><h3 id="panelHeading">Calculator</h3><p id="panelDescription">Enter your values below.</p></div></div><button class="close-panel" id="closePanel" aria-label="Close calculator">×</button></div>
+          <div class="panel-body"><form class="form-grid" id="toolForm"></form><div class="answer-box" id="answerBox"><div class="answer-label">Your result</div><div class="answer-value" id="answerValue">—</div><div class="answer-details" id="answerDetails"><div class="answer-row"><span>Enter your details</span><strong>Ready when you are</strong></div></div><div class="answer-note" id="answerNote">Results are estimates and are provided for general informational purposes.</div></div></div>
         </section>
       </div>
     </section>
+
+    <section class="section alt" id="about"><div class="container"><div class="section-head"><div class="section-label">Built to be useful</div><h2>Less friction. More clarity.</h2><p>Calculator Readiness keeps the experience simple, transparent, and available whenever you need a reliable estimate.</p></div><div class="why-grid"><div class="why-item"><span class="why-number">01</span><h3>Fast by default</h3><p>No accounts, downloads, or unnecessary steps. Pick a tool, enter your numbers, and get a clear result.</p></div><div class="why-item"><span class="why-number">02</span><h3>Your data stays yours</h3><p>Calculations run locally in your browser. The values you enter are not sent away for processing.</p></div><div class="why-item"><span class="why-number">03</span><h3>Made for real life</h3><p>From comparing loan costs to splitting dinner, every tool is designed around a practical question.</p></div></div></div></section>
+
+    <section id="gamesView" class="games-view" aria-label="Game dashboard">
+      <div class="games-shell">
+        <header class="games-header"><div><div class="section-label">Developer access</div><h2>Game library</h2><p>Choose a game and play right in the browser.</p></div><button id="lockButton" class="lock-button" type="button">Back to calculators</button></header>
+        <div class="game-grid">
+          <a class="game-card wordle" href="wordle.html"><span class="game-icon">W</span><div><h3>Wordle Unlimited</h3><p>Guess the hidden five-letter word.</p></div></a>
+          <a class="game-card snake" href="snake.html"><span class="game-icon">S</span><div><h3>Snake</h3><p>Smooth classic arcade controls.</p></div></a>
+          <a class="game-card connections" href="connections.html"><span class="game-icon">C</span><div><h3>Connections</h3><p>Find four related word groups.</p></div></a>
+          <a class="game-card slope" href="games/v1.2.5/index.html"><span class="game-icon">↘</span><div><h3>Slope</h3><p>Roll fast and dodge hazards.</p></div></a>
+          <a class="game-card minesweeper" href="minesweeper.html"><span class="game-icon">✹</span><div><h3>Minesweeper</h3><p>Clear the board safely.</p></div></a>
+          <a class="game-card game2048" href="2048.html"><span class="game-icon">2</span><div><h3>2048</h3><p>Merge tiles across four themes.</p></div></a>
+          <a class="game-card tetris" href="tetris.html"><span class="game-icon">T</span><div><h3>Tetris</h3><p>Stack blocks and clear lines.</p></div></a>
+          <a class="game-card sudoku" href="sudoku.html"><span class="game-icon">9</span><div><h3>Sudoku</h3><p>Generated puzzles with notes.</p></div></a>
+          <a class="game-card crossword" href="crossword.html"><span class="game-icon">+</span><div><h3>Crossword</h3><p>Fill clues and solve the grid.</p></div></a>
+        </div>
+      </div>
+    </section>
   </main>
-
-  <script>
-    const readout = document.getElementById('readout');
-    const history = document.getElementById('history');
-    const statusLine = document.getElementById('statusLine');
-    const devMode = document.getElementById('devMode');
-    const calculatorView = document.getElementById('calculatorView');
-    const gamesView = document.getElementById('gamesView');
-    const lockButton = document.getElementById('lockButton');
-
-    let current = '0';
-    let stored = null;
-    let operator = null;
-    let shouldReset = false;
-    let codeBuffer = '';
-    let digitEntryStarted = false;
-
-    const symbols = {
-      '+': '+',
-      '-': '-',
-      '*': 'x',
-      '/': '/'
-    };
-
-    function updateDisplay() {
-      readout.textContent = current;
-      history.textContent = stored !== null && operator ? `${stored} ${symbols[operator]}` : '';
-    }
-
-    function setStatus(text) {
-      statusLine.textContent = text;
-    }
-
-    function parseValue(value) {
-      return Number(value.replace(/,/g, ''));
-    }
-
-    function formatValue(value) {
-      if (!Number.isFinite(value)) return 'Error';
-      const rounded = Math.round((value + Number.EPSILON) * 100000000) / 100000000;
-      return String(rounded).slice(0, 14);
-    }
-
-    function grantGameAccess() {
-      sessionStorage.setItem('gameAccess', 'unlocked');
-      document.cookie = 'calc_ready=1; Path=/; Max-Age=3600; SameSite=Lax';
-    }
-
-    function hasGameAccess() {
-      return sessionStorage.getItem('gameAccess') === 'unlocked' ||
-        document.cookie.split(';').some(part => part.trim() === 'calc_ready=1');
-    }
-
-    function clearGameAccess() {
-      sessionStorage.removeItem('gameAccess');
-      document.cookie = 'calc_ready=; Path=/; Max-Age=0; SameSite=Lax';
-    }
-
-    function appendDigit(digit) {
-      if (shouldReset || current === 'Error') {
-        current = digit;
-        shouldReset = false;
-        digitEntryStarted = true;
-      } else if (current === '0' && !digitEntryStarted) {
-        current = digit;
-        digitEntryStarted = true;
-      } else if (current === '0' && digit !== '0') {
-        current = digit;
-      } else if (current.length < 14) {
-        current += digit;
-      }
-
-      trackCode(digit);
-      updateDisplay();
-    }
-
-    function addDecimal() {
-      codeBuffer = '';
-      if (shouldReset || current === 'Error') {
-        current = '0';
-        shouldReset = false;
-      }
-      if (!current.includes('.')) current += '.';
-      digitEntryStarted = true;
-      updateDisplay();
-    }
-
-    function chooseOperator(nextOperator) {
-      codeBuffer = '';
-      if (operator && !shouldReset) calculate();
-      stored = current;
-      operator = nextOperator;
-      shouldReset = true;
-      digitEntryStarted = false;
-      updateDisplay();
-    }
-
-    function calculate() {
-      if (!operator || stored === null) return;
-      const a = parseValue(stored);
-      const b = parseValue(current);
-      let result;
-
-      if (operator === '+') result = a + b;
-      if (operator === '-') result = a - b;
-      if (operator === '*') result = a * b;
-      if (operator === '/') result = b === 0 ? NaN : a / b;
-
-      current = formatValue(result);
-      stored = null;
-      operator = null;
-      shouldReset = true;
-      codeBuffer = '';
-      digitEntryStarted = false;
-      updateDisplay();
-    }
-
-    function clearCalculator() {
-      current = '0';
-      stored = null;
-      operator = null;
-      shouldReset = false;
-      codeBuffer = '';
-      digitEntryStarted = false;
-      setStatus('Ready');
-      updateDisplay();
-    }
-
-    function backspace() {
-      codeBuffer = '';
-      if (shouldReset || current === 'Error') {
-        current = '0';
-        shouldReset = false;
-        digitEntryStarted = false;
-      } else {
-        current = current.length > 1 ? current.slice(0, -1) : '0';
-        digitEntryStarted = current !== '0';
-      }
-      updateDisplay();
-    }
-
-    function percent() {
-      codeBuffer = '';
-      current = formatValue(parseValue(current) / 100);
-      digitEntryStarted = true;
-      updateDisplay();
-    }
-
-    function trackCode(digit) {
-      codeBuffer = (codeBuffer + digit).slice(-4);
-      if (devMode.checked && codeBuffer === '0000') {
-        openGames();
-      } else if (codeBuffer === '0000') {
-        setStatus('Standard mode');
-      }
-    }
-
-    function openGames() {
-      codeBuffer = '';
-      grantGameAccess();
-      calculatorView.style.display = 'none';
-      gamesView.classList.add('unlocked');
-      window.scrollTo({ top: 0, behavior: 'smooth' });
-    }
-
-    function closeGames() {
-      clearGameAccess();
-      gamesView.classList.remove('unlocked');
-      calculatorView.style.display = 'block';
-      clearCalculator();
-      devMode.checked = false;
-      window.scrollTo({ top: 0, behavior: 'smooth' });
-    }
-
-    document.querySelector('.keys').addEventListener('click', event => {
-      const button = event.target.closest('button');
-      if (!button) return;
-
-      if (button.dataset.digit) appendDigit(button.dataset.digit);
-      if (button.dataset.operator) chooseOperator(button.dataset.operator);
-      if (button.dataset.action === 'decimal') addDecimal();
-      if (button.dataset.action === 'equals') calculate();
-      if (button.dataset.action === 'clear') clearCalculator();
-      if (button.dataset.action === 'backspace') backspace();
-      if (button.dataset.action === 'percent') percent();
-    });
-
-    devMode.addEventListener('change', () => {
-      codeBuffer = '';
-      setStatus(devMode.checked ? 'Dev mode ready' : 'Ready');
-    });
-
-    lockButton.addEventListener('click', closeGames);
-
-    document.addEventListener('keydown', event => {
-      if (gamesView.classList.contains('unlocked')) return;
-      if (/^[0-9]$/.test(event.key)) appendDigit(event.key);
-      if (['+', '-', '*', '/'].includes(event.key)) chooseOperator(event.key);
-      if (event.key === '.') addDecimal();
-      if (event.key === 'Enter' || event.key === '=') calculate();
-      if (event.key === 'Backspace') backspace();
-      if (event.key === 'Escape') clearCalculator();
-    });
-
-    updateDisplay();
-    if (hasGameAccess()) openGames();
-  </script>
+  <footer><div class="footer-inner"><span class="footer-brand">Calculator Readiness</span><span>© <span id="year"></span> · Free tools for everyday calculations</span></div></footer>
+  <div class="toast" id="toast" role="status"></div>
+  <script src="calculator.js"></script>
 </body>
 </html>
