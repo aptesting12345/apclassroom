@@ -16,25 +16,47 @@ install -m 0644 "$repo/server/activity-auth.mjs" /opt/calculatorreadiness/activi
 install -m 0644 "$repo/deploy/calculatorreadiness-activity-auth.service" /etc/systemd/system/calculatorreadiness-activity-auth.service
 install -m 0644 "$repo/deploy/nginx-activities.conf" /etc/nginx/snippets/calculatorreadiness-activities.conf
 
+if ! nginx -T 2>&1 | grep -Fq 'location ^~ /activities/'; then
+  active_config="$(nginx -T 2>&1 | awk '
+    $1 == "#" && $2 == "configuration" && $3 == "file" { file=$4; sub(/:$/, "", file) }
+    index($0, "server_name") && index($0, "calculatorreadiness") { print file; exit }
+  ')"
+  if [[ -z "$active_config" ]]; then
+    echo "Could not locate the active calculatorreadiness Nginx configuration." >&2
+    exit 2
+  fi
+  active_config="$(readlink -f "$active_config")"
+  backup_config="${active_config}.before-activities"
+  cp -a "$active_config" "$backup_config"
+  patched_config="$(mktemp)"
+  awk '
+    { print }
+    !added && $0 ~ /^[[:space:]]*listen[[:space:]]+443([^0-9]|$)/ {
+      print "    include /etc/nginx/snippets/calculatorreadiness-activities.conf;"
+      added=1
+    }
+    END { if (!added) exit 3 }
+  ' "$active_config" > "$patched_config" || {
+    rm -f "$patched_config"
+    echo "Found $active_config, but could not locate its HTTPS listener." >&2
+    exit 2
+  }
+  install -m "$(stat -c '%a' "$active_config")" "$patched_config" "$active_config"
+  rm -f "$patched_config"
+  if ! nginx -t; then
+    cp -a "$backup_config" "$active_config"
+    echo "Nginx validation failed; the original configuration was restored." >&2
+    exit 2
+  fi
+  echo "Added protected activity routes to $active_config"
+fi
+
 secret="$(openssl rand -hex 32)"
 umask 077
 printf 'ACTIVITIES_ACCESS_CODE=%s\nACTIVITIES_SESSION_SECRET=%s\n' "$1" "$secret" > /etc/calculatorreadiness/activity-auth.env
 
 systemctl daemon-reload
 systemctl enable --now calculatorreadiness-activity-auth.service
-
-if ! nginx -T 2>&1 | grep -Fq 'location ^~ /activities/'; then
-  cat <<'MESSAGE'
-
-Authentication is running, but Nginx is not protecting /activities/ yet.
-Add this line inside the calculatorreadiness.com server block:
-
-    include /etc/nginx/snippets/calculatorreadiness-activities.conf;
-
-Then run this installer again. The site deployment remains safely blocked until that is done.
-MESSAGE
-  exit 2
-fi
 
 nginx -t
 install -m 0755 "$repo/deploy/deploy-calculatorreadiness" /usr/local/sbin/deploy-calculatorreadiness
