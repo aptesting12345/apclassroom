@@ -60,7 +60,8 @@ umask 077
 printf 'ACTIVITIES_ACCESS_CODE=%s\nACTIVITIES_SESSION_SECRET=%s\n' "$1" "$secret" > /etc/calculatorreadiness/activity-auth.env
 
 systemctl daemon-reload
-systemctl enable --now calculatorreadiness-activity-auth.service
+systemctl enable calculatorreadiness-activity-auth.service
+systemctl restart calculatorreadiness-activity-auth.service
 if ! systemctl is-active --quiet calculatorreadiness-activity-auth.service; then
   journalctl -u calculatorreadiness-activity-auth.service -n 20 --no-pager >&2
   echo "Activity authentication did not start." >&2
