@@ -7,13 +7,18 @@ backup_root="/var/www/calculatorreadiness.previous"
 lock_file="/run/lock/calculatorreadiness-deploy.lock"
 state_dir="/var/lib/calculatorreadiness"
 deployed_file="$state_dir/deployed-commit"
+repo_user="evanmholland"
+
+repo_git() {
+  runuser -u "$repo_user" -- git -C "$repo" "$@"
+}
 
 exec 9>"$lock_file"
 flock -n 9 || exit 0
 
-git -c safe.directory="$repo" -C "$repo" fetch --quiet origin main
-current_commit="$(git -c safe.directory="$repo" -C "$repo" rev-parse HEAD)"
-remote_commit="$(git -c safe.directory="$repo" -C "$repo" rev-parse origin/main)"
+repo_git fetch --quiet origin main
+current_commit="$(repo_git rev-parse HEAD)"
+remote_commit="$(repo_git rev-parse origin/main)"
 deployed_commit="$(cat "$deployed_file" 2>/dev/null || true)"
 
 if [[ "$deployed_commit" == "$remote_commit" ]]; then
@@ -26,7 +31,7 @@ cleanup() {
 }
 trap cleanup EXIT
 
-git -c safe.directory="$repo" -C "$repo" archive origin/main | tar -x -C "$stage"
+repo_git archive origin/main | tar -x -C "$stage"
 
 test -s "$stage/index.html"
 test -s "$stage/game-guard.js"
@@ -58,7 +63,7 @@ if ! nginx -t; then
   exit 1
 fi
 
-git -c safe.directory="$repo" -C "$repo" reset --hard "$remote_commit" >/dev/null
+repo_git reset --hard "$remote_commit" >/dev/null
 systemctl reload nginx
 install -d -m 0755 "$state_dir"
 printf '%s\n' "$remote_commit" > "$deployed_file"
