@@ -5,6 +5,8 @@ repo="/home/evanmholland/apclassroom"
 web_root="/var/www/calculatorreadiness"
 backup_root="/var/www/calculatorreadiness.previous"
 lock_file="/run/lock/calculatorreadiness-deploy.lock"
+state_dir="/var/lib/calculatorreadiness"
+deployed_file="$state_dir/deployed-commit"
 
 exec 9>"$lock_file"
 flock -n 9 || exit 0
@@ -12,8 +14,9 @@ flock -n 9 || exit 0
 git -c safe.directory="$repo" -C "$repo" fetch --quiet origin main
 current_commit="$(git -c safe.directory="$repo" -C "$repo" rev-parse HEAD)"
 remote_commit="$(git -c safe.directory="$repo" -C "$repo" rev-parse origin/main)"
+deployed_commit="$(cat "$deployed_file" 2>/dev/null || true)"
 
-if [[ "$current_commit" == "$remote_commit" ]]; then
+if [[ "$deployed_commit" == "$remote_commit" ]]; then
   exit 0
 fi
 
@@ -57,4 +60,6 @@ fi
 
 git -c safe.directory="$repo" -C "$repo" reset --hard "$remote_commit" >/dev/null
 systemctl reload nginx
+install -d -m 0755 "$state_dir"
+printf '%s\n' "$remote_commit" > "$deployed_file"
 echo "Deployed $remote_commit"
