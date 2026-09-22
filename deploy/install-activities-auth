@@ -12,7 +12,11 @@ fi
 
 repo="$(cd "$(dirname "$0")/.." && pwd)"
 install -d -m 0755 /opt/calculatorreadiness /etc/calculatorreadiness
-install -m 0644 "$repo/server/activity-auth.mjs" /opt/calculatorreadiness/activity-auth.mjs
+if [[ ! -x /usr/bin/python3 ]]; then
+  echo "Python 3 is required at /usr/bin/python3." >&2
+  exit 2
+fi
+install -m 0644 "$repo/server/activity-auth.py" /opt/calculatorreadiness/activity-auth.py
 install -m 0644 "$repo/deploy/calculatorreadiness-activity-auth.service" /etc/systemd/system/calculatorreadiness-activity-auth.service
 install -m 0644 "$repo/deploy/nginx-activities.conf" /etc/nginx/snippets/calculatorreadiness-activities.conf
 

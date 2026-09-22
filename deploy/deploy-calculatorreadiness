@@ -54,7 +54,7 @@ chmod -R a+rX "$stage"
 rm -rf "$backup_root"
 cp -a "$web_root" "$backup_root"
 install -d -m 0755 /opt/calculatorreadiness
-install -m 0644 "$stage/server/activity-auth.mjs" /opt/calculatorreadiness/activity-auth.mjs
+install -m 0644 "$stage/server/activity-auth.py" /opt/calculatorreadiness/activity-auth.py
 systemctl restart calculatorreadiness-activity-auth.service
 rsync -a --delete --exclude='.git/' --exclude='deploy/' --exclude='server/' --exclude='functions/' --exclude='_routes.json' --exclude='CNAME' --exclude='README.md' "$stage/" "$web_root/"
 
