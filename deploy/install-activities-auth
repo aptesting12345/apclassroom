@@ -67,7 +67,12 @@ if ! systemctl is-active --quiet calculatorreadiness-activity-auth.service; then
   echo "Activity authentication did not start." >&2
   exit 2
 fi
-auth_status="$(curl -sS -o /dev/null -w '%{http_code}' http://127.0.0.1:8765/check || true)"
+auth_status=""
+for attempt in {1..20}; do
+  auth_status="$(curl -s -o /dev/null -w '%{http_code}' http://127.0.0.1:8765/check || true)"
+  [[ "$auth_status" == "401" ]] && break
+  sleep 0.25
+done
 if [[ "$auth_status" != "401" ]]; then
   journalctl -u calculatorreadiness-activity-auth.service -n 20 --no-pager >&2
   echo "Activity authentication health check failed with status ${auth_status:-unavailable}." >&2
