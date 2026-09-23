@@ -8,6 +8,8 @@ lock_file="/run/lock/calculatorreadiness-deploy.lock"
 state_dir="/var/lib/calculatorreadiness"
 deployed_file="$state_dir/deployed-commit"
 repo_user="evanmholland"
+nginx_activity_snippet="/etc/nginx/snippets/calculatorreadiness-activities.conf"
+nginx_activity_backup="/etc/nginx/snippets/calculatorreadiness-activities.conf.previous"
 
 repo_git() {
   runuser -u "$repo_user" -- git -C "$repo" "$@"
@@ -56,9 +58,12 @@ cp -a "$web_root" "$backup_root"
 install -d -m 0755 /opt/calculatorreadiness
 install -m 0644 "$stage/server/activity-auth.py" /opt/calculatorreadiness/activity-auth.py
 systemctl restart calculatorreadiness-activity-auth.service
+cp -a "$nginx_activity_snippet" "$nginx_activity_backup"
+install -m 0644 "$stage/deploy/nginx-activities.conf" "$nginx_activity_snippet"
 rsync -a --delete --exclude='.git/' --exclude='deploy/' --exclude='server/' --exclude='functions/' --exclude='_routes.json' --exclude='CNAME' --exclude='README.md' "$stage/" "$web_root/"
 
 if ! nginx -t; then
+  cp -a "$nginx_activity_backup" "$nginx_activity_snippet"
   rsync -a --delete "$backup_root/" "$web_root/"
   exit 1
 fi
