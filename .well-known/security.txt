@@ -1,0 +1,4 @@
+Contact: https://github.com/aptesting12345/apclassroom/security/advisories/new
+Expires: 2027-09-01T00:00:00Z
+Canonical: https://calculatorreadiness.com/.well-known/security.txt
+Preferred-Languages: en
