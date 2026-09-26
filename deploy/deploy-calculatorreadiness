@@ -38,6 +38,13 @@ repo_git archive origin/main | tar -x -C "$stage"
 test -s "$stage/index.html"
 test -s "$stage/game-guard.js"
 test -s "$stage/.well-known/security.txt"
+test -s "$stage/robots.txt"
+test -s "$stage/sitemap.xml"
+for seo_page in \
+  compound-interest simple-interest loan-payment savings-goal percentage \
+  tip-split date-difference unit-converter bmi; do
+  test -s "$stage/calculators/$seo_page/index.html"
+done
 test -s "$stage/activities/index.html"
 test -s "$stage/activities/4/JavaScript/Touchscreen.js"
 if ! systemctl is-active --quiet calculatorreadiness-activity-auth.service; then

@@ -1,0 +1,11 @@
+.tool-hero{padding:64px 16px 42px;color:#fff;background:radial-gradient(circle at 82% 16%,rgba(45,184,153,.2),transparent 26%),#0b1220}
+.tool-hero .wrap{display:grid;grid-template-columns:1fr .9fr;align-items:center;gap:48px}
+.breadcrumbs{margin-bottom:18px;color:#9fb0c8;font-size:13px}.breadcrumbs a{color:#c8d7ef;text-decoration:none}.breadcrumbs span{padding:0 8px}
+.tool-hero h1{max-width:720px;margin:6px 0 14px;font-size:clamp(38px,6vw,60px);line-height:1.05;letter-spacing:-.045em}.tool-hero p{max-width:650px;margin:0;color:#b5c0d0;font-size:18px}
+.tool-box{padding:24px;border:1px solid #dfe5ef;border-radius:20px;background:#fff;box-shadow:0 18px 50px rgba(0,0,0,.25)}
+.tool-box h2{margin:0 0 4px;color:#132033;font-size:22px}.tool-box>p{margin:0 0 20px;color:#627086;font-size:13px}.calculator-grid{display:grid;grid-template-columns:1fr;gap:15px}.calculator-grid .calculate-btn{grid-column:auto}
+.tool-result{margin-top:18px;padding:19px;border:1px solid #dbe7ff;border-radius:14px;background:#f0f5ff}.tool-result .answer-value{font-size:30px}.tool-result[hidden]{display:none}
+.prose{max-width:780px}.prose h2{margin:42px 0 12px;font-size:30px;letter-spacing:-.03em}.prose h2:first-child{margin-top:0}.prose h3{margin:26px 0 8px}.prose p,.prose li{color:#526176}.prose ul,.prose ol{padding-left:22px}.formula{padding:18px 20px;border-left:4px solid #2764e7;border-radius:0 12px 12px 0;background:#eaf1ff;color:#263951;font-weight:700}.example{padding:20px;border:1px solid #dfe5ef;border-radius:15px;background:#fff}.review{margin-top:38px;padding-top:18px;border-top:1px solid #dfe5ef;color:#738095;font-size:13px}
+.related{margin-top:50px}.related-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:14px}.related a{padding:18px;border:1px solid #dfe5ef;border-radius:14px;color:#132033;background:#fff;font-weight:750;text-decoration:none}.related a:hover{border-color:#8bacf4;color:#2764e7}
+.site-footer-links{display:flex;flex-wrap:wrap;gap:18px}.site-footer-links a{color:#627086;text-decoration:none}
+@media(max-width:860px){.tool-hero .wrap{grid-template-columns:1fr}.related-grid{grid-template-columns:1fr}}
